@@ -1,0 +1,2122 @@
+investment-portal/
+├── server.js
+├── package.json
+├── .env
+├── .gitignore
+└── public/
+    ├── index.html
+    ├── style.css
+    └── app.js
+    
+{
+  "name": "investment-portal",
+  "version": "1.0.0",
+  "description": "Crypto investment portal with investor and admin dashboards",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.8.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1"
+  }
+}
+
+PORT=3000
+ADMIN_NAME=Portal Administrator
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=ChangeThisToAStrongPassword123!
+SESSION_SECRET=replace-this-with-a-long-random-secret
+BRAND_NAME=Independent Investment Portal
+SUPPORT_EMAIL=support@example.com
+
+node_modules/
+.env
+database.sqlite
+database.sqlite-shm
+database.sqlite-wal
+
+require("dotenv").config();
+
+const express = require("express");
+const session = require("express-session");
+const SQLiteStore = require("better-sqlite3");
+const bcrypt = require("bcryptjs");
+const path = require("path");
+
+const app = express();
+const db = new SQLiteStore("database.sqlite");
+
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "change-this-secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 1000 * 60 * 60 * 8
+    }
+  })
+);
+
+app.use(express.static(path.join(__dirname, "public")));
+
+// DATABASE TABLES
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT DEFAULT 'investor',
+    balance REAL DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS wallets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    asset TEXT NOT NULL,
+    network TEXT NOT NULL,
+    address TEXT NOT NULL,
+    active INTEGER DEFAULT 1
+  );
+
+  CREATE TABLE IF NOT EXISTS packages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    minimum REAL NOT NULL,
+    maximum REAL NOT NULL,
+    daily_rate REAL NOT NULL,
+    duration INTEGER NOT NULL,
+    active INTEGER DEFAULT 1
+  );
+
+  CREATE TABLE IF NOT EXISTS deposits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    asset TEXT NOT NULL,
+    amount REAL NOT NULL,
+    tx_hash TEXT NOT NULL,
+    status TEXT DEFAULT 'pending',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS withdrawals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    amount REAL NOT NULL,
+    wallet_address TEXT NOT NULL,
+    asset TEXT NOT NULL,
+    status TEXT DEFAULT 'pending',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS investments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    package_id INTEGER NOT NULL,
+    amount REAL NOT NULL,
+    status TEXT DEFAULT 'active',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(package_id) REFERENCES packages(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS support_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    subject TEXT NOT NULL,
+    message TEXT NOT NULL,
+    status TEXT DEFAULT 'open',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id)
+  );
+`);
+
+// INITIAL ADMIN ACCOUNT
+function createInitialAdmin() {
+  const email = process.env.ADMIN_EMAIL;
+  const password = process.env.ADMIN_PASSWORD;
+  const name = process.env.ADMIN_NAME || "Administrator";
+
+  if (!email || !password) {
+    console.warn("Admin not created: set ADMIN_EMAIL and ADMIN_PASSWORD in .env");
+    return;
+  }
+
+  const existing = db.prepare(
+    "SELECT id FROM users WHERE email = ?"
+  ).get(email.toLowerCase());
+
+  if (!existing) {
+    const hash = bcrypt.hashSync(password, 12);
+
+    db.prepare(`
+      INSERT INTO users (name, email, password, role)
+      VALUES (?, ?, ?, 'admin')
+    `).run(name, email.toLowerCase(), hash);
+
+    console.log("Initial admin account created.");
+  }
+}
+
+createInitialAdmin();
+
+// DEFAULT INVESTMENT PACKAGES
+const packageCount = db.prepare(
+  "SELECT COUNT(*) AS count FROM packages"
+).get().count;
+
+if (packageCount === 0) {
+  const insertPackage = db.prepare(`
+    INSERT INTO packages
+    (name, minimum, maximum, daily_rate, duration)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+
+  insertPackage.run("Starter", 50, 500, 0, 30);
+  insertPackage.run("Silver", 500, 2000, 0, 30);
+  insertPackage.run("Gold", 2000, 5000, 0, 30);
+  insertPackage.run("Premium", 5000, 10000, 0, 30);
+}
+
+// AUTHENTICATION HELPERS
+function requireLogin(req, res, next) {
+  if (!req.session.user) {
+    return res.status(401).json({ error: "Please log in first." });
+  }
+  next();
+}
+
+function requireAdmin(req, res, next) {
+  if (!req.session.user || req.session.user.role !== "admin") {
+    return res.status(403).json({ error: "Administrator access required." });
+  }
+  next();
+}
+
+function publicUser(user) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    balance: user.balance,
+    created_at: user.created_at
+  };
+}
+
+// REGISTER
+app.post("/api/register", (req, res) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password || password.length < 10) {
+    return res.status(400).json({
+      error: "Enter your name, a valid email and a password of at least 10 characters."
+    });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+
+  try {
+    const hash = bcrypt.hashSync(password, 12);
+
+    const result = db.prepare(`
+      INSERT INTO users (name, email, password)
+      VALUES (?, ?, ?)
+    `).run(name.trim(), normalizedEmail, hash);
+
+    const user = db.prepare(
+      "SELECT * FROM users WHERE id = ?"
+    ).get(result.lastInsertRowid);
+
+    req.session.user = publicUser(user);
+
+    res.json({ user: publicUser(user) });
+  } catch (error) {
+    res.status(409).json({ error: "That email address is already registered." });
+  }
+});
+
+// LOGIN
+app.post("/api/login", (req, res) => {
+  const { email, password } = req.body;
+
+  const user = db.prepare(
+    "SELECT * FROM users WHERE email = ?"
+  ).get(String(email || "").trim().toLowerCase());
+
+  if (!user || !bcrypt.compareSync(password || "", user.password)) {
+    return res.status(401).json({ error: "Incorrect email or password." });
+  }
+
+  req.session.user = publicUser(user);
+
+  res.json({ user: publicUser(user) });
+});
+
+// CURRENT USER
+app.get("/api/me", requireLogin, (req, res) => {
+  const user = db.prepare(
+    "SELECT * FROM users WHERE id = ?"
+  ).get(req.session.user.id);
+
+  if (!user) {
+    return res.status(401).json({ error: "Account not found." });
+  }
+
+  req.session.user = publicUser(user);
+  res.json({ user: publicUser(user) });
+});
+
+// LOGOUT
+app.post("/api/logout", requireLogin, (req, res) => {
+  req.session.destroy(() => {
+    res.json({ message: "Logged out." });
+  });
+});
+
+// DASHBOARD DATA
+app.get("/api/dashboard", requireLogin, (req, res) => {
+  const userId = req.session.user.id;
+
+  const user = db.prepare(
+    "SELECT * FROM users WHERE id = ?"
+  ).get(userId);
+
+  const deposits = db.prepare(`
+    SELECT * FROM deposits
+    WHERE user_id = ?
+    ORDER BY id DESC LIMIT 10
+  `).all(userId);
+
+  const withdrawals = db.prepare(`
+    SELECT * FROM withdrawals
+    WHERE user_id = ?
+    ORDER BY id DESC LIMIT 10
+  `).all(userId);
+
+  const investments = db.prepare(`
+    SELECT investments.*, packages.name AS package_name
+    FROM investments
+    JOIN packages ON packages.id = investments.package_id
+    WHERE investments.user_id = ?
+    ORDER BY investments.id DESC
+  `).all(userId);
+
+  res.json({
+    user: publicUser(user),
+    deposits,
+    withdrawals,
+    investments
+  });
+});
+
+// PUBLIC INVESTMENT PACKAGES
+app.get("/api/packages", (req, res) => {
+  const packages = db.prepare(`
+    SELECT * FROM packages
+    WHERE active = 1
+    ORDER BY minimum ASC
+  `).all();
+
+  res.json({ packages });
+});
+
+// ACTIVE DEPOSIT WALLETS
+app.get("/api/wallets", (req, res) => {
+  const wallets = db.prepare(`
+    SELECT id, asset, network, address
+    FROM wallets
+    WHERE active = 1
+    ORDER BY asset ASC
+  `).all();
+
+  res.json({ wallets });
+});
+
+// REQUEST DEPOSIT
+app.post("/api/deposits", requireLogin, (req, res) => {
+  const { asset, amount, tx_hash } = req.body;
+  const numericAmount = Number(amount);
+
+  if (!asset || !Number.isFinite(numericAmount) || numericAmount <= 0 || !tx_hash) {
+    return res.status(400).json({ error: "Enter a valid asset, amount and transaction hash." });
+  }
+
+  const result = db.prepare(`
+    INSERT INTO deposits (user_id, asset, amount, tx_hash)
+    VALUES (?, ?, ?, ?)
+  `).run(req.session.user.id, asset, numericAmount, tx_hash.trim());
+
+  res.json({
+    message: "Deposit submitted for administrator verification.",
+    depositId: result.lastInsertRowid
+  });
+});
+
+// REQUEST WITHDRAWAL
+app.post("/api/withdrawals", requireLogin, (req, res) => {
+  const { amount, wallet_address, asset } = req.body;
+  const numericAmount = Number(amount);
+  const userId = req.session.user.id;
+
+  if (!Number.isFinite(numericAmount) || numericAmount <= 0 || !wallet_address || !asset) {
+    return res.status(400).json({ error: "Enter a valid withdrawal amount, asset and wallet address." });
+  }
+
+  const createWithdrawal = db.transaction(() => {
+    const user = db.prepare(
+      "SELECT balance FROM users WHERE id = ?"
+    ).get(userId);
+
+    if (!user || user.balance < numericAmount) {
+      throw new Error("Insufficient available balance.");
+    }
+
+    db.prepare(
+      "UPDATE users SET balance = balance - ? WHERE id = ?"
+    ).run(numericAmount, userId);
+
+    return db.prepare(`
+      INSERT INTO withdrawals
+      (user_id, amount, wallet_address, asset)
+      VALUES (?, ?, ?, ?)
+    `).run(userId, numericAmount, wallet_address.trim(), asset);
+  });
+
+  try {
+    const result = createWithdrawal();
+    res.json({
+      message: "Withdrawal request submitted for review.",
+      withdrawalId: result.lastInsertRowid
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// INVEST USING VERIFIED BALANCE
+app.post("/api/investments", requireLogin, (req, res) => {
+  const packageId = Number(req.body.package_id);
+  const amount = Number(req.body.amount);
+  const userId = req.session.user.id;
+
+  if (!Number.isInteger(packageId) || !Number.isFinite(amount) || amount <= 0) {
+    return res.status(400).json({ error: "Enter a valid package and amount." });
+  }
+
+  const createInvestment = db.transaction(() => {
+    const investmentPackage = db.prepare(
+      "SELECT * FROM packages WHERE id = ? AND active = 1"
+    ).get(packageId);
+
+    const user = db.prepare(
+      "SELECT balance FROM users WHERE id = ?"
+    ).get(userId);
+
+    if (!investmentPackage) {
+      throw new Error("Investment package is unavailable.");
+    }
+
+    if (amount < investmentPackage.minimum || amount > investmentPackage.maximum) {
+      throw new Error("Amount is outside this package's limits.");
+    }
+
+    if (!user || user.balance < amount) {
+      throw new Error("Insufficient available balance.");
+    }
+
+    db.prepare(
+      "UPDATE users SET balance = balance - ? WHERE id = ?"
+    ).run(amount, userId);
+
+    return db.prepare(`
+      INSERT INTO investments (user_id, package_id, amount)
+      VALUES (?, ?, ?)
+    `).run(userId, packageId, amount);
+  });
+
+  try {
+    const result = createInvestment();
+    res.json({
+      message: "Investment recorded.",
+      investmentId: result.lastInsertRowid
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// SUPPORT MESSAGE
+app.post("/api/support", requireLogin, (req, res) => {
+  const { subject, message } = req.body;
+
+  if (!subject || !message) {
+    return res.status(400).json({ error: "Enter a subject and message." });
+  }
+
+  db.prepare(`
+    INSERT INTO support_messages (user_id, subject, message)
+    VALUES (?, ?, ?)
+  `).run(req.session.user.id, subject.trim(), message.trim());
+
+  res.json({ message: "Your support message has been submitted." });
+});
+
+// PUBLIC SITE CONFIGURATION
+app.get("/api/config", (req, res) => {
+  res.json({
+    brand: process.env.BRAND_NAME || "Independent Investment Portal",
+    supportEmail: process.env.SUPPORT_EMAIL || ""
+  });
+});
+
+// PUBLIC, DATABASE-BACKED ACTIVITY
+app.get("/api/activity", (req, res) => {
+  const investorCount = db.prepare(
+    "SELECT COUNT(*) AS count FROM users WHERE role = 'investor'"
+  ).get().count;
+
+  const recentDeposits = db.prepare(`
+    SELECT users.name, deposits.asset, deposits.amount, deposits.created_at
+    FROM deposits
+    JOIN users ON users.id = deposits.user_id
+    WHERE deposits.status = 'confirmed'
+    ORDER BY deposits.id DESC LIMIT 10
+  `).all();
+
+  res.json({ investorCount, recentDeposits });
+});
+
+// ADMIN OVERVIEW
+app.get("/api/admin/overview", requireAdmin, (req, res) => {
+  const investors = db.prepare(
+    "SELECT COUNT(*) AS count FROM users WHERE role = 'investor'"
+  ).get().count;
+
+  const pendingDeposits = db.prepare(
+    "SELECT COUNT(*) AS count FROM deposits WHERE status = 'pending'"
+  ).get().count;
+
+  const pendingWithdrawals = db.prepare(
+    "SELECT COUNT(*) AS count FROM withdrawals WHERE status = 'pending'"
+  ).get().count;
+
+  const users = db.prepare(`
+    SELECT id, name, email, balance, created_at
+    FROM users WHERE role = 'investor'
+    ORDER BY id DESC LIMIT 100
+  `).all();
+
+  const deposits = db.prepare(`
+    SELECT deposits.*, users.name, users.email
+    FROM deposits JOIN users ON users.id = deposits.user_id
+    ORDER BY deposits.id DESC LIMIT 100
+  `).all();
+
+  const withdrawals = db.prepare(`
+    SELECT withdrawals.*, users.name, users.email
+    FROM withdrawals JOIN users ON users.id = withdrawals.user_id
+    ORDER BY withdrawals.id DESC LIMIT 100
+  `).all();
+
+  const messages = db.prepare(`
+    SELECT support_messages.*, users.name, users.email
+    FROM support_messages
+    JOIN users ON users.id = support_messages.user_id
+    ORDER BY support_messages.id DESC LIMIT 100
+  `).all();
+
+  res.json({
+    investors,
+    pendingDeposits,
+    pendingWithdrawals,
+    users,
+    deposits,
+    withdrawals,
+    messages
+  });
+});
+
+// ADMIN: ADD OR UPDATE A WALLET
+app.post("/api/admin/wallets", requireAdmin, (req, res) => {
+  const { id, asset, network, address } = req.body;
+
+  if (!asset || !network || !address) {
+    return res.status(400).json({ error: "Asset, network and address are required." });
+  }
+
+  if (id) {
+    db.prepare(`
+      UPDATE wallets
+      SET asset = ?, network = ?, address = ?
+      WHERE id = ?
+    `).run(asset, network, address.trim(), Number(id));
+  } else {
+    db.prepare(`
+      INSERT INTO wallets (asset, network, address)
+      VALUES (?, ?, ?)
+    `).run(asset, network, address.trim());
+  }
+
+  res.json({ message: "Wallet saved." });
+});
+
+// ADMIN: ENABLE OR DISABLE WALLET
+app.patch("/api/admin/wallets/:id", requireAdmin, (req, res) => {
+  const active = req.body.active ? 1 : 0;
+
+  db.prepare(
+    "UPDATE wallets SET active = ? WHERE id = ?"
+  ).run(active, Number(req.params.id));
+
+  res.json({ message: "Wallet status updated." });
+});
+
+// ADMIN: LIST ALL WALLETS
+app.get("/api/admin/wallets", requireAdmin, (req, res) => {
+  const wallets = db.prepare(
+    "SELECT * FROM wallets ORDER BY id DESC"
+  ).all();
+
+  res.json({ wallets });
+});
+
+// ADMIN: UPDATE INVESTMENT PACKAGE
+app.put("/api/admin/packages/:id", requireAdmin, (req, res) => {
+  const { name, minimum, maximum, daily_rate, duration, active } = req.body;
+
+  if (
+    !name ||
+    !Number.isFinite(Number(minimum)) ||
+    !Number.isFinite(Number(maximum)) ||
+    Number(minimum) < 0 ||
+    Number(maximum) < Number(minimum) ||
+    Number(daily_rate) < 0 ||
+    Number(duration) < 1
+  ) {
+    return res.status(400).json({ error: "Invalid package details." });
+  }
+
+  db.prepare(`
+    UPDATE packages
+    SET name = ?, minimum = ?, maximum = ?,
+        daily_rate = ?, duration = ?, active = ?
+    WHERE id = ?
+  `).run(
+    name,
+    Number(minimum),
+    Number(maximum),
+    Number(daily_rate),
+    Number(duration),
+    active ? 1 : 0,
+    Number(req.params.id)
+  );
+
+  res.json({ message: "Package updated." });
+});
+
+// ADMIN: CONFIRM OR REJECT A DEPOSIT
+app.patch("/api/admin/deposits/:id", requireAdmin, (req, res) => {
+  const { status } = req.body;
+
+  if (!["confirmed", "rejected"].includes(status)) {
+    return res.status(400).json({ error: "Invalid deposit status." });
+  }
+
+  const updateDeposit = db.transaction(() => {
+    const deposit = db.prepare(
+      "SELECT * FROM deposits WHERE id = ?"
+    ).get(Number(req.params.id));
+
+    if (!deposit || deposit.status !== "pending") {
+      throw new Error("Deposit not found or already reviewed.");
+    }
+
+    db.prepare(
+      "UPDATE deposits SET status = ? WHERE id = ?"
+    ).run(status, deposit.id);
+
+    if (status === "confirmed") {
+      db.prepare(
+        "UPDATE users SET balance = balance + ? WHERE id = ?"
+      ).run(deposit.amount, deposit.user_id);
+    }
+  });
+
+  try {
+    updateDeposit();
+    res.json({ message: `Deposit ${status}.` });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// ADMIN: MARK WITHDRAWAL AS PAID OR REJECT IT
+app.patch("/api/admin/withdrawals/:id", requireAdmin, (req, res) => {
+  const { status } = req.body;
+
+  if (!["paid", "rejected"].includes(status)) {
+    return res.status(400).json({ error: "Invalid withdrawal status." });
+  }
+
+  const updateWithdrawal = db.transaction(() => {
+    const withdrawal = db.prepare(
+      "SELECT * FROM withdrawals WHERE id = ?"
+    ).get(Number(req.params.id));
+
+    if (!withdrawal || withdrawal.status !== "pending") {
+      throw new Error("Withdrawal not found or already reviewed.");
+    }
+
+    db.prepare(
+      "UPDATE withdrawals SET status = ? WHERE id = ?"
+    ).run(status, withdrawal.id);
+
+    if (status === "rejected") {
+      db.prepare(
+        "UPDATE users SET balance = balance + ? WHERE id = ?"
+      ).run(withdrawal.amount, withdrawal.user_id);
+    }
+  });
+
+  try {
+    updateWithdrawal();
+    res.json({ message: `Withdrawal marked ${status}.` });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// ADMIN: CLOSE SUPPORT MESSAGE
+app.patch("/api/admin/support/:id", requireAdmin, (req, res) => {
+  db.prepare(
+    "UPDATE support_messages SET status = 'closed' WHERE id = ?"
+  ).run(Number(req.params.id));
+
+  res.json({ message: "Support message closed." });
+});
+
+// START SERVER
+app.listen(PORT, () => {
+  console.log(`Investment portal running at http://localhost:${PORT}`);
+});
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Investment Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <h1 id="brandAuth">Investment Portal</h1>
+      <p>Access your investment account</p>
+
+      <div class="auth-tabs">
+        <button id="loginTab" class="active" onclick="showAuth('login')">Login</button>
+        <button id="registerTab" onclick="showAuth('register')">Create account</button>
+      </div>
+
+      <form id="loginForm">
+        <label>Email address</label>
+        <input type="email" id="loginEmail" required>
+        <label>Password</label>
+        <input type="password" id="loginPassword" required>
+        <button class="primary-btn" type="submit">Sign in</button>
+      </form>
+
+      <form id="registerForm" class="hidden">
+        <label>Full name</label>
+        <input id="registerName" required>
+        <label>Email address</label>
+        <input type="email" id="registerEmail" required>
+        <label>Password (minimum 10 characters)</label>
+        <input type="password" id="registerPassword" minlength="10" required>
+        <button class="primary-btn" type="submit">Create account</button>
+      </form>
+
+      <p id="authMessage" class="message"></p>
+    </div>
+  </div>
+
+  <div id="appScreen" class="app-screen hidden">
+    <aside class="sidebar">
+      <h2 id="brandSidebar">Investment Portal</h2>
+      <div class="user-mini">
+        <div class="avatar" id="userAvatar">U</div>
+        <div>
+          <strong id="sidebarName">User</strong>
+          <small id="sidebarRole">Investor</small>
+        </div>
+      </div>
+
+      <nav>
+        <button class="nav-btn active" data-page="dashboard">Dashboard</button>
+        <button class="nav-btn" data-page="invest">Investment plans</button>
+        <button class="nav-btn" data-page="deposit">Deposit</button>
+        <button class="nav-btn" data-page="withdraw">Withdraw</button>
+        <button class="nav-btn" data-page="history">Transactions</button>
+        <button class="nav-btn" data-page="support">Support</button>
+        <button class="nav-btn hidden" id="adminNav" data-page="admin">Administration</button>
+      </nav>
+
+      <button id="logoutBtn" class="logout-btn">Log out</button>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <h1 id="pageTitle">Dashboard</h1>
+          <p>Welcome back, <span id="welcomeName">Investor</span></p>
+        </div>
+        <div class="topbar-right">
+          <span id="currentDate"></span>
+        </div>
+      </header>
+
+      <section id="dashboardPage" class="page">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span>Available balance</span>
+            <h2 id="balanceValue">$0.00</h2>
+          </div>
+          <div class="stat-card">
+            <span>Active investments</span>
+            <h2 id="investmentCount">0</h2>
+          </div>
+          <div class="stat-card">
+            <span>Pending deposits</span>
+            <h2 id="pendingDeposits">0</h2>
+          </div>
+          <div class="stat-card">
+            <span>Total investors</span>
+            <h2 id="investorCount">0</h2>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <h2>Recent confirmed deposits</h2>
+          <div id="activityList">Loading activity...</div>
+        </div>
+
+        <div class="content-card">
+          <h2>Your investments</h2>
+          <div id="dashboardInvestments">No investments yet.</div>
+        </div>
+      </section>
+
+      <section id="investPage" class="page hidden">
+        <div class="content-card">
+          <h2>Available investment plans</h2>
+          <p>Review the terms and risks before committing funds.</p>
+          <div id="packageList" class="package-grid"></div>
+        </div>
+
+        <div class="content-card">
+          <h2>Make an investment</h2>
+          <form id="investmentForm">
+            <label>Investment plan</label>
+            <select id="investmentPackage" required></select>
+            <label>Amount (USD)</label>
+            <input id="investmentAmount" type="number" min="1" step="0.01" required>
+            <button class="primary-btn">Invest from available balance</button>
+          </form>
+          <p id="investmentMessage" class="message"></p>
+        </div>
+      </section>
+
+      <section id="depositPage" class="page hidden">
+        <div class="content-card">
+          <h2>Deposit cryptocurrency</h2>
+          <p>Select the correct asset and network. Sending funds to the wrong network may result in permanent loss.</p>
+          <div id="walletList" class="wallet-grid"></div>
+        </div>
+
+        <div class="content-card">
+          <h2>Submit deposit details</h2>
+          <form id="depositForm">
+            <label>Cryptocurrency</label>
+            <select id="depositAsset" required>
+              <option value="BTC">Bitcoin (BTC)</option>
+              <option value="ETH">Ethereum (ETH)</option>
+              <option value="USDT">USDT</option>
+              <option value="TRX">Tron (TRX)</option>
+            </select>
+            <label>Amount (USD equivalent)</label>
+            <input id="depositAmount" type="number" min="0.01" step="0.01" required>
+            <label>Transaction hash</label>
+            <input id="depositHash" required>
+            <button class="primary-btn">Submit deposit for review</button>
+          </form>
+          <p id="depositMessage" class="message"></p>
+        </div>
+      </section>
+
+      <section id="withdrawPage" class="page hidden">
+        <div class="content-card">
+          <h2>Request a withdrawal</h2>
+          <p>Your available balance: <strong id="withdrawBalance">$0.00</strong></p>
+          <form id="withdrawForm">
+            <label>Asset</label>
+            <select id="withdrawAsset" required>
+              <option value="BTC">BTC</option>
+              <option value="ETH">ETH</option>
+              <option value="USDT">USDT</option>
+              <option value="TRX">TRX</option>
+            </select>
+            <label>Amount (USD equivalent)</label>
+            <input id="withdrawAmount" type="number" min="0.01" step="0.01" required>
+            <label>Your receiving wallet address</label>
+            <input id="withdrawAddress" required>
+            <button class="primary-btn">Submit withdrawal request</button>
+          </form>
+          <p id="withdrawMessage" class="message"></p>
+        </div>
+      </section>
+
+      <section id="historyPage" class="page hidden">
+        <div class="content-card">
+          <h2>Deposit history</h2>
+          <div id="depositHistory"></div>
+        </div>
+        <div class="content-card">
+          <h2>Withdrawal history</h2>
+          <div id="withdrawalHistory"></div>
+        </div>
+      </section>
+
+      <section id="supportPage" class="page hidden">
+        <div class="content-card">
+          <h2>Contact support</h2>
+          <p>Send a message to the support team.</p>
+          <form id="supportForm">
+            <label>Subject</label>
+            <input id="supportSubject" required>
+            <label>Message</label>
+            <textarea id="supportText" rows="6" required></textarea>
+            <button class="primary-btn">Send message</button>
+          </form>
+          <p id="supportMessage" class="message"></p>
+          <p id="supportEmail"></p>
+        </div>
+      </section>
+
+      <section id="adminPage" class="page hidden">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span>Registered investors</span>
+            <h2 id="adminInvestorCount">0</h2>
+          </div>
+          <div class="stat-card">
+            <span>Pending deposits</span>
+            <h2 id="adminPendingDeposits">0</h2>
+          </div>
+          <div class="stat-card">
+            <span>Pending withdrawals</span>
+            <h2 id="adminPendingWithdrawals">0</h2>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <h2>Manage deposit wallets</h2>
+          <form id="walletForm">
+            <input type="hidden" id="walletId">
+            <label>Asset</label>
+            <select id="walletAsset">
+              <option>BTC</option>
+              <option>ETH</option>
+              <option>USDT</option>
+              <option>TRX</option>
+            </select>
+            <label>Network</label>
+            <input id="walletNetwork" placeholder="Bitcoin, Ethereum, TRC20..." required>
+            <label>Wallet address</label>
+            <input id="walletAddress" required>
+            <button class="primary-btn">Save wallet</button>
+          </form>
+          <div id="adminWalletList"></div>
+        </div>
+
+        <div class="content-card">
+          <h2>Investment package settings</h2>
+          <div id="adminPackageList"></div>
+        </div>
+
+        <div class="content-card">
+          <h2>Review deposits</h2>
+          <div id="adminDepositList"></div>
+        </div>
+
+        <div class="content-card">
+          <h2>Review withdrawals</h2>
+          <div id="adminWithdrawalList"></div>
+        </div>
+
+        <div class="content-card">
+          <h2>Investor accounts</h2>
+          <div id="adminUsersList"></div>
+        </div>
+
+        <div class="content-card">
+          <h2>Support messages</h2>
+          <div id="adminMessages"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
+:root {
+  --background: #f4f6fa;
+  --surface: #ffffff;
+  --sidebar: #101b32;
+  --primary: #2457e6;
+  --text: #172033;
+  --muted: #748096;
+  --border: #e7eaf0;
+  --success: #16865b;
+  --danger: #c43c45;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--background);
+  color: var(--text);
+}
+
+button, input, select, textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.auth-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 430px;
+  padding: 35px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 15px 50px rgba(20, 35, 65, .08);
+}
+
+.auth-card h1 {
+  margin: 0 0 8px;
+}
+
+.auth-card > p {
+  color: var(--muted);
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 25px 0;
+}
+
+.auth-tabs button {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+}
+
+.auth-tabs button.active {
+  background: #eaf0ff;
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary);
+}
+
+.primary-btn {
+  background: var(--primary);
+  color: white;
+  border: 0;
+  padding: 13px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+.primary-btn:hover {
+  filter: brightness(.93);
+}
+
+.message {
+  min-height: 20px;
+  font-size: 14px;
+  color: var(--danger);
+}
+
+.app-screen {
+  min-height: 100vh;
+  display: flex;
+}
+
+.sidebar {
+  width: 250px;
+  background: var(--sidebar);
+  color: white;
+  padding: 25px 16px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar h2 {
+  font-size: 19px;
+  padding: 0 10px;
+  margin: 0 0 30px;
+}
+
+.user-mini {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 10px 22px;
+  border-bottom: 1px solid rgba(255,255,255,.13);
+  margin-bottom: 20px;
+}
+
+.user-mini strong,
+.user-mini small {
+  display: block;
+}
+
+.user-mini small {
+  color: #aab6cc;
+  margin-top: 5px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #345cae;
+  font-weight: bold;
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nav-btn {
+  border: 0;
+  color: #c7d0e1;
+  background: transparent;
+  text-align: left;
+  padding: 13px 12px;
+  border-radius: 8px;
+}
+
+.nav-btn:hover,
+.nav-btn.active {
+  background: #23365b;
+  color: white;
+}
+
+.logout-btn {
+  margin-top: auto;
+  border: 1px solid rgba(255,255,255,.2);
+  color: white;
+  background: transparent;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  padding: 30px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.topbar h1 {
+  margin: 0 0 7px;
+  font-size: 26px;
+}
+
+.topbar p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.topbar-right {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat-card,
+.content-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+}
+
+.stat-card span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.stat-card h2 {
+  font-size: 27px;
+  margin: 12px 0 0;
+}
+
+.content-card {
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.content-card h2 {
+  font-size: 18px;
+  margin: 0 0 18px;
+}
+
+.content-card p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.package-grid,
+.wallet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 15px;
+}
+
+.package-card,
+.wallet-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  background: white;
+}
+
+.package-card h3,
+.wallet-card h3 {
+  margin-top: 0;
+}
+
+.package-card p,
+.wallet-card p {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+th, td {
+  text-align: left;
+  padding: 13px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.action-btn {
+  border: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin: 2px;
+  background: #eaf0ff;
+  color: var(--primary);
+}
+
+.action-btn.danger {
+  color: var(--danger);
+  background: #fff0f0;
+}
+
+.status {
+  display: inline-block;
+  border-radius: 20px;
+  padding: 5px 9px;
+  font-size: 11px;
+  background: #eef1f6;
+}
+
+.status.confirmed,
+.status.paid {
+  background: #e3f7ed;
+  color: var(--success);
+}
+
+.status.rejected {
+  background: #fff0f0;
+  color: var(--danger);
+}
+
+.empty {
+  color: var(--muted);
+  padding: 15px 0;
+}
+
+@media (max-width: 1050px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .app-screen {
+    display: block;
+  }
+
+  .sidebar {
+    width: 100%;
+    padding: 16px;
+  }
+
+  .sidebar h2 {
+    margin-bottom: 15px;
+  }
+
+  .user-mini {
+    display: none;
+  }
+
+  .sidebar nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+
+  .nav-btn {
+    white-space: nowrap;
+  }
+
+  .logout-btn {
+    margin-top: 5px;
+  }
+
+  .main-content {
+    padding: 18px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-card,
+  .content-card {
+    padding: 16px;
+  }
+
+  .stat-card h2 {
+    font-size: 21px;
+  }
+
+  .topbar h1 {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 390px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-card {
+    padding: 22px;
+  }
+}
+
+const $ = (id) => document.getElementById(id);
+
+let currentUser = null;
+let packages = [];
+
+async function api(url, options = {}) {
+  const response = await fetch(url, {
+    credentials: "same-origin",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    },
+    ...options
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error || "Something went wrong.");
+  }
+
+  return data;
+}
+
+function money(value) {
+  return "$" + Number(value || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[character]);
+}
+
+function showMessage(id, message, success = false) {
+  const element = $(id);
+  element.textContent = message;
+  element.style.color = success ? "#16865b" : "#c43c45";
+}
+
+function showAuth(mode) {
+  $("loginForm").classList.toggle("hidden", mode !== "login");
+  $("registerForm").classList.toggle("hidden", mode !== "register");
+  $("loginTab").classList.toggle("active", mode === "login");
+  $("registerTab").classList.toggle("active", mode === "register");
+  showMessage("authMessage", "");
+}
+
+function showPage(page) {
+  document.querySelectorAll(".page").forEach(section => {
+    section.classList.add("hidden");
+  });
+
+  const selected = $(page + "Page");
+  if (!selected) return;
+
+  selected.classList.remove("hidden");
+
+  document.querySelectorAll(".nav-btn").forEach(button => {
+    button.classList.toggle("active", button.dataset.page === page);
+  });
+
+  const titles = {
+    dashboard: "Dashboard",
+    invest: "Investment plans",
+    deposit: "Deposit",
+    withdraw: "Withdraw",
+    history: "Transactions",
+    support: "Support",
+    admin: "Administration"
+  };
+
+  $("pageTitle").textContent = titles[page] || "Dashboard";
+
+  if (page === "dashboard") loadDashboard();
+  if (page === "invest") loadPackages();
+  if (page === "deposit") loadWallets();
+  if (page === "history") loadDashboard();
+  if (page === "admin") loadAdmin();
+}
+
+function showApp(user) {
+  currentUser = user;
+
+  $("authScreen").classList.add("hidden");
+  $("appScreen").classList.remove("hidden");
+
+  $("sidebarName").textContent = user.name;
+  $("welcomeName").textContent = user.name;
+  $("sidebarRole").textContent = user.role === "admin" ? "Administrator" : "Investor";
+  $("userAvatar").textContent = user.name.charAt(0).toUpperCase();
+
+  $("adminNav").classList.toggle("hidden", user.role !== "admin");
+
+  showPage("dashboard");
+}
+
+function showLogin() {
+  currentUser = null;
+  $("appScreen").classList.add("hidden");
+  $("authScreen").classList.remove("hidden");
+  showAuth("login");
+}
+
+async function loadConfiguration() {
+  try {
+    const config = await api("/api/config");
+
+    $("brandAuth").textContent = config.brand;
+    $("brandSidebar").textContent = config.brand;
+    $("supportEmail").textContent = config.supportEmail
+      ? "Support email: " + config.supportEmail
+      : "";
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// LOGIN
+$("loginForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  try {
+    const result = await api("/api/login", {
+      method: "POST",
+      body: JSON.stringify({
+        email: $("loginEmail").value,
+        password: $("loginPassword").value
+      })
+    });
+
+    showApp(result.user);
+  } catch (error) {
+    showMessage("authMessage", error.message);
+  }
+});
+
+// REGISTRATION
+$("registerForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  try {
+    const result = await api("/api/register", {
+      method: "POST",
+      body: JSON.stringify({
+        name: $("registerName").value,
+        email: $("registerEmail").value,
+        password: $("registerPassword").value
+      })
+    });
+
+    showApp(result.user);
+  } catch (error) {
+    showMessage("authMessage", error.message);
+  }
+});
+
+// LOGOUT
+$("logoutBtn").addEventListener("click", async () => {
+  try {
+    await api("/api/logout", { method: "POST" });
+    showLogin();
+  } catch (error) {
+    alert(error.message);
+  }
+});
+
+// NAVIGATION
+document.querySelectorAll(".nav-btn").forEach(button => {
+  button.addEventListener("click", () => {
+    showPage(button.dataset.page);
+  });
+});
+
+// DASHBOARD
+async function loadDashboard() {
+  try {
+    const result = await api("/api/dashboard");
+
+    currentUser = result.user;
+
+    $("balanceValue").textContent = money(result.user.balance);
+    $("withdrawBalance").textContent = money(result.user.balance);
+    $("investmentCount").textContent = result.investments.length;
+
+    $("pendingDeposits").textContent = result.deposits.filter(
+      item => item.status === "pending"
+    ).length;
+
+    $("depositHistory").innerHTML = renderTable(
+      ["Asset", "Amount", "Transaction hash", "Status", "Date"],
+      result.deposits.map(item => [
+        item.asset,
+        money(item.amount),
+        item.tx_hash,
+        statusBadge(item.status),
+        item.created_at
+      ])
+    );
+
+    $("withdrawalHistory").innerHTML = renderTable(
+      ["Asset", "Amount", "Wallet", "Status", "Date"],
+      result.withdrawals.map(item => [
+        item.asset,
+        money(item.amount),
+        item.wallet_address,
+        statusBadge(item.status),
+        item.created_at
+      ])
+    );
+
+    $("dashboardInvestments").innerHTML = result.investments.length
+      ? renderTable(
+          ["Plan", "Amount", "Status", "Date"],
+          result.investments.map(item => [
+            item.package_name,
+            money(item.amount),
+            statusBadge(item.status),
+            item.created_at
+          ])
+        )
+      : '<p class="empty">You have not made an investment yet.</p>';
+
+    await loadActivity();
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function loadActivity() {
+  try {
+    const result = await api("/api/activity");
+
+    $("investorCount").textContent = result.investorCount;
+
+    $("activityList").innerHTML = result.recentDeposits.length
+      ? renderTable(
+          ["Investor", "Asset", "Amount", "Date"],
+          result.recentDeposits.map(item => [
+            item.name,
+            item.asset,
+            money(item.amount),
+            item.created_at
+          ])
+        )
+      : '<p class="empty">No confirmed deposits yet.</p>';
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// TABLE AND STATUS HELPERS
+function statusBadge(status) {
+  const safe = escapeHTML(status);
+  return `<span class="status ${safe}">${safe.toUpperCase()}</span>`;
+}
+
+function renderTable(headers, rows) {
+  if (!rows.length) return '<p class="empty">No records found.</p>';
+
+  return `
+    <table>
+      <thead>
+        <tr>${headers.map(header => `<th>${escapeHTML(header)}</th>`).join("")}</tr>
+      </thead>
+      <tbody>
+        ${rows.map(row => `
+          <tr>${row.map(cell => `<td>${cell}</td>`).join("")}</tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+// INVESTMENT PACKAGES
+async function loadPackages() {
+  try {
+    const result = await api("/api/packages");
+    packages = result.packages;
+
+    $("packageList").innerHTML = packages.map(item => `
+      <div class="package-card">
+        <h3>${escapeHTML(item.name)}</h3>
+        <p>Minimum: ${money(item.minimum)}</p>
+        <p>Maximum: ${money(item.maximum)}</p>
+        <p>Duration: ${item.duration} days</p>
+        <p>Daily rate: ${Number(item.daily_rate)}%</p>
+        <button class="action-btn" onclick="selectPackage(${item.id})">
+          Select plan
+        </button>
+      </div>
+    `).join("");
+
+    $("investmentPackage").innerHTML = packages.map(item => `
+      <option value="${item.id}">
+        ${escapeHTML(item.name)} (${money(item.minimum)} - ${money(item.maximum)})
+      </option>
+    `).join("");
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function selectPackage(id) {
+  $("investmentPackage").value = id;
+  $("investmentAmount").focus();
+}
+
+$("investmentForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  try {
+    const result = await api("/api/investments", {
+      method: "POST",
+      body: JSON.stringify({
+        package_id: Number($("investmentPackage").value),
+        amount: Number($("investmentAmount").value)
+      })
+    });
+
+    showMessage("investmentMessage", result.message, true);
+    $("investmentForm").reset();
+    await loadDashboard();
+  } catch (error) {
+    showMessage("investmentMessage", error.message);
+  }
+});
+
+// DEPOSIT WALLETS
+async function loadWallets() {
+  try {
+    const result = await api("/api/wallets");
+
+    $("walletList").innerHTML = result.wallets.length
+      ? result.wallets.map(wallet => `
+        <div class="wallet-card">
+          <h3>${escapeHTML(wallet.asset)}</h3>
+          <p>Network: ${escapeHTML(wallet.network)}</p>
+          <p>Address: ${escapeHTML(wallet.address)}</p>
+          <button class="action-btn" onclick="copyWallet('${escapeHTML(wallet.address)}')">
+            Copy address
+          </button>
+        </div>
+      `).join("")
+      : '<p class="empty">Deposit wallets have not been configured.</p>';
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function copyWallet(address) {
+  try {
+    await navigator.clipboard.writeText(address);
+    alert("Wallet address copied.");
+  } catch {
+    alert("Could not copy address. Please copy it manually.");
+  }
+}
+
+// DEPOSIT SUBMISSION
+$("depositForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  try {
+    const result = await api("/api/deposits", {
+      method: "POST",
+      body: JSON.stringify({
+        asset: $("depositAsset").value,
+        amount: Number($("depositAmount").value),
+        tx_hash: $("depositHash").value
+      })
+    });
+
+    showMessage("depositMessage", result.message, true);
+    $("depositForm").reset();
+    await loadDashboard();
+  } catch (error) {
+    showMessage("depositMessage", error.message);
+  }
+});
+
+// WITHDRAWAL SUBMISSION
+$("withdrawForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  try {
+    const result = await api("/api/withdrawals", {
+      method: "POST",
+      body: JSON.stringify({
+        asset: $("withdrawAsset").value,
+        amount: Number($("withdrawAmount").value),
+        wallet_address: $("withdrawAddress").value
+      })
+    });
+
+    showMessage("withdrawMessage", result.message, true);
+    $("withdrawForm").reset();
+    await loadDashboard();
+  } catch (error) {
+    showMessage("withdrawMessage", error.message);
+  }
+});
+
+// SUPPORT
+$("supportForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  try {
+    const result = await api("/api/support", {
+      method: "POST",
+      body: JSON.stringify({
+        subject: $("supportSubject").value,
+        message: $("supportText").value
+      })
+    });
+
+    showMessage("supportMessage", result.message, true);
+    $("supportForm").reset();
+  } catch (error) {
+    showMessage("supportMessage", error.message);
+  }
+});
+
+// ADMIN DASHBOARD
+async function loadAdmin() {
+  if (!currentUser || currentUser.role !== "admin") return;
+
+  try {
+    const [overview, wallets, packageResult] = await Promise.all([
+      api("/api/admin/overview"),
+      api("/api/admin/wallets"),
+      api("/api/packages")
+    ]);
+
+    $("adminInvestorCount").textContent = overview.investors;
+    $("adminPendingDeposits").textContent = overview.pendingDeposits;
+    $("adminPendingWithdrawals").textContent = overview.pendingWithdrawals;
+
+    renderAdminWallets(wallets.wallets);
+    renderAdminPackages(packageResult.packages);
+    renderAdminDeposits(overview.deposits);
+    renderAdminWithdrawals(overview.withdrawals);
+    renderAdminUsers(overview.users);
+    renderAdminMessages(overview.messages);
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function renderAdminWallets(wallets) {
+  $("adminWalletList").innerHTML = renderTable(
+    ["Asset", "Network", "Address", "Status", "Action"],
+    wallets.map(wallet => [
+      escapeHTML(wallet.asset),
+      escapeHTML(wallet.network),
+      escapeHTML(wallet.address),
+      wallet.active ? "Active" : "Inactive",
+      `
+        <button class="action-btn" onclick="editWallet(${wallet.id}, '${escapeHTML(wallet.asset)}', '${escapeHTML(wallet.network)}', '${escapeHTML(wallet.address)}')">Edit</button>
+        <button class="action-btn danger" onclick="toggleWallet(${wallet.id}, ${wallet.active ? "false" : "true"})">
+          ${wallet.active ? "Disable" : "Enable"}
+        </button>
+      `
+    ])
+  );
+}
+
+function editWallet(id, asset, network, address) {
+  $("walletId").value = id;
+  $("walletAsset").value = asset;
+  $("walletNetwork").value = network;
+  $("walletAddress").value = address;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+$("walletForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  try {
+    await api("/api/admin/wallets", {
+      method: "POST",
+      body: JSON.stringify({
+        id: $("walletId").value || null,
+        asset: $("walletAsset").value,
+        network: $("walletNetwork").value,
+        address: $("walletAddress").value
+      })
+    });
+
+    $("walletForm").reset();
+    $("walletId").value = "";
+    await loadAdmin();
+    alert("Wallet saved.");
+  } catch (error) {
+    alert(error.message);
+  }
+});
+
+async function toggleWallet(id, active) {
+  try {
+    await api(`/api/admin/wallets/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ active })
+    });
+
+    await loadAdmin();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function renderAdminPackages(items) {
+  $("adminPackageList").innerHTML = items.map(item => `
+    <form class="package-edit" onsubmit="savePackage(event, ${item.id})">
+      <h3>${escapeHTML(item.name)}</h3>
+
+      <label>Package name</label>
+      <input name="name" value="${escapeHTML(item.name)}" required>
+
+      <label>Minimum investment</label>
+      <input name="minimum" type="number" min="0" step="0.01" value="${item.minimum}" required>
+
+      <label>Maximum investment</label>
+      <input name="maximum" type="number" min="0" step="0.01" value="${item.maximum}" required>
+
+      <label>Daily rate (%)</label>
+      <input name="daily_rate" type="number" min="0" step="0.01" value="${item.daily_rate}" required>
+
+      <label>Duration (days)</label>
+      <input name="duration" type="number" min="1" value="${item.duration}" required>
+
+      <label>
+        <input name="active" type="checkbox" ${item.active ? "checked" : ""}>
+        Active
+      </label>
+
+      <button class="primary-btn">Save package</button>
+    </form>
+  `).join("");
+}
+
+async function savePackage(event, id) {
+  event.preventDefault();
+
+  const form = event.target;
+  const data = new FormData(form);
+
+  try {
+    await api(`/api/admin/packages/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        name: data.get("name"),
+        minimum: Number(data.get("minimum")),
+        maximum: Number(data.get("maximum")),
+        daily_rate: Number(data.get("daily_rate")),
+        duration: Number(data.get("duration")),
+        active: data.has("active")
+      })
+    });
+
+    alert("Package updated.");
+    await loadAdmin();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function renderAdminDeposits(items) {
+  $("adminDepositList").innerHTML = renderTable(
+    ["Investor", "Asset", "Amount", "Transaction hash", "Status", "Actions"],
+    items.map(item => [
+      escapeHTML(item.name),
+      escapeHTML(item.asset),
+      money(item.amount),
+      escapeHTML(item.tx_hash),
+      statusBadge(item.status),
+      item.status === "pending"
+        ? `
+          <button class="action-btn" onclick="reviewDeposit(${item.id}, 'confirmed')">Confirm</button>
+          <button class="action-btn danger" onclick="reviewDeposit(${item.id}, 'rejected')">Reject</button>
+        `
+        : "Reviewed"
+    ])
+  );
+}
+
+async function reviewDeposit(id, status) {
+  const confirmed = confirm(
+    `Are you sure you want to mark this deposit as ${status}? Only confirm after independently verifying the transaction on the correct blockchain and network.`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await api(`/api/admin/deposits/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status })
+    });
+
+    await loadAdmin();
+    alert("Deposit reviewed.");
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function renderAdminWithdrawals(items) {
+  $("adminWithdrawalList").innerHTML = renderTable(
+    ["Investor", "Asset", "Amount", "Wallet address", "Status", "Actions"],
+    items.map(item => [
+      escapeHTML(item.name),
+      escapeHTML(item.asset),
+      money(item.amount),
+      escapeHTML(item.wallet_address),
+      statusBadge(item.status),
+      item.status === "pending"
+        ? `
+          <button class="action-btn" onclick="reviewWithdrawal(${item.id}, 'paid')">Mark paid</button>
+          <button class="action-btn danger" onclick="reviewWithdrawal(${item.id}, 'rejected')">Reject</button>
+        `
+        : "Reviewed"
+    ])
+  );
+}
+
+async function reviewWithdrawal(id, status) {
+  const warning = status === "paid"
+    ? "Only mark this paid after you have actually sent the cryptocurrency and verified the transaction."
+    : "Reject this withdrawal and return the amount to the investor's balance?";
+
+  if (!confirm(warning)) return;
+
+  try {
+    await api(`/api/admin/withdrawals/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status })
+    });
+
+    await loadAdmin();
+    alert("Withdrawal reviewed.");
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function renderAdminUsers(users) {
+  $("adminUsersList").innerHTML = renderTable(
+    ["Name", "Email", "Balance", "Joined"],
+    users.map(user => [
+      escapeHTML(user.name),
+      escapeHTML(user.email),
+      money(user.balance),
+      user.created_at
+    ])
+  );
+}
+
+function renderAdminMessages(messages) {
+  $("adminMessages").innerHTML = renderTable(
+    ["Investor", "Email", "Subject", "Message", "Status", "Action"],
+    messages.map(message => [
+      escapeHTML(message.name),
+      escapeHTML(message.email),
+      escapeHTML(message.subject),
+      escapeHTML(message.message),
+      statusBadge(message.status),
+      message.status === "open"
+        ? `<button class="action-btn" onclick="closeMessage(${message.id})">Close</button>`
+        : "Closed"
+    ])
+  );
+}
+
+async function closeMessage(id) {
+  try {
+    await api(`/api/admin/support/${id}`, { method: "PATCH" });
+    await loadAdmin();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+// INITIALIZATION
+async function initialize() {
+  $("currentDate").textContent = new Date().toLocaleDateString();
+
+  await loadConfiguration();
+
+  try {
+    const result = await api("/api/me");
+    showApp(result.user);
+  } catch {
+    showLogin();
+  }
+}
+
+initialize();
