@@ -1,417 +1,62 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>G TOP | Investment Platform</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G TOP | Staging Platform</title>
 <style>
-:root {
-  --green:#073b2b;
-  --deep:#05291f;
-  --gold:#d9ad55;
-  --cream:#f7f7f2;
-  --white:#fff;
-  --muted:#6c786f;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:var(--cream);color:#17251e;line-height:1.6}
-button,input,textarea{font:inherit}
-button{cursor:pointer}
-header{background:var(--green);color:white;padding:18px 7%;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.logo{font-size:27px;font-weight:900;letter-spacing:2px;color:var(--gold)}
-nav{display:flex;gap:25px;align-items:center}
-nav a{color:white;text-decoration:none;font-size:14px}
-nav a:hover{color:var(--gold)}
-.nav-btn,.primary-btn{background:var(--gold);color:#18271d;padding:12px 21px;border:0;border-radius:5px;font-weight:bold;text-decoration:none;display:inline-block}
-.hero{background:linear-gradient(110deg,rgba(3,39,28,.97),rgba(7,59,43,.88)),radial-gradient(circle at 80% 30%,#477d5a,#05291f);color:white;padding:105px 7% 110px;min-height:470px}
-.hero-content{max-width:690px}
-.eyebrow{color:var(--gold);font-weight:bold;letter-spacing:3px;font-size:12px;margin-bottom:17px}
-.hero h1{font-size:clamp(38px,6vw,65px);line-height:1.12;margin-bottom:22px}
-.hero h1 span{color:var(--gold)}
-.hero p{color:#dce8df;max-width:570px;font-size:17px;margin-bottom:30px}
-.hero-actions{display:flex;gap:13px;flex-wrap:wrap}
-.outline-btn{padding:11px 21px;border:1px solid #d9ad55;color:white;border-radius:5px;text-decoration:none}
-.section{padding:75px 7%}
-.section-heading{text-align:center;max-width:650px;margin:0 auto 38px}
-.section-heading .eyebrow{color:#9b752d}
-.section-heading h2{font-size:34px;color:var(--green);margin-bottom:10px}
-.section-heading p{color:var(--muted)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:-35px;padding:0 7%;position:relative}
-.stat{background:white;padding:23px;text-align:center;border-radius:8px;box-shadow:0 8px 25px #132c1c12}
-.stat strong{display:block;font-size:25px;color:var(--green)}
-.stat span{font-size:13px;color:var(--muted)}
-.packages{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px}
-.package{background:white;border:1px solid #e7e9e2;border-radius:10px;padding:27px;box-shadow:0 8px 24px #163a2410}
-.package h3{font-size:21px;color:var(--green);margin-bottom:12px}
-.package .amount{font-size:30px;font-weight:800;color:#a47a2c;margin:10px 0}
-.package p{color:var(--muted);font-size:14px;min-height:48px}
-.package button{margin-top:20px;width:100%;background:var(--green);color:white;border:0;border-radius:5px;padding:12px;font-weight:bold}
-.empty{text-align:center;color:var(--muted);padding:25px}
-.features{background:#edf1e9}
-.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:20px}
-.feature{background:white;padding:25px;border-radius:8px}
-.feature .symbol{font-size:27px;color:#b58a3e}
-.feature h3{color:var(--green);margin:10px 0}
-.feature p{font-size:14px;color:var(--muted)}
-.cta{background:var(--green);color:white;text-align:center;padding:65px 7%}
-.cta h2{font-size:32px;margin-bottom:12px}
-.cta p{color:#d5e2d8;margin-bottom:22px}
-footer{background:var(--deep);color:#d7e1d9;padding:35px 7%;text-align:center;font-size:13px}
-footer .logo{margin-bottom:8px}
-#adminArea{display:none;padding:55px 7%;min-height:70vh;background:#f3f5f0}
-.admin-box{max-width:850px;margin:auto;background:white;border-radius:10px;padding:28px;box-shadow:0 5px 25px #0000000d}
-.admin-box h2{color:var(--green);margin-bottom:20px}
-.field{margin-bottom:15px}
-.field label{display:block;font-weight:bold;font-size:14px;margin-bottom:6px}
-.field input,.field textarea{width:100%;padding:12px;border:1px solid #d6ddd5;border-radius:5px}
-.field textarea{min-height:85px;resize:vertical}
-.action-btn{background:var(--green);color:white;border:0;padding:12px 20px;border-radius:5px;font-weight:bold}
-.secondary-btn{background:#e8eee8;color:var(--green);border:0;padding:10px 15px;border-radius:5px}
-.danger-btn{background:#a83232;color:white;border:0;padding:8px 12px;border-radius:4px}
-.admin-list{margin-top:30px}
-.admin-item{border:1px solid #e1e6df;padding:15px;border-radius:6px;margin:10px 0;display:flex;justify-content:space-between;align-items:center;gap:12px}
-.admin-item small{display:block;color:var(--muted)}
-.admin-actions{display:flex;gap:7px;flex-wrap:wrap}
-.message{padding:10px;margin:12px 0;border-radius:5px;background:#edf5eb;color:#24552c}
-.error{background:#fbeaea;color:#9b2929}
-.hidden{display:none!important}
-@media(max-width:700px){
- header{flex-wrap:wrap;padding:16px 5%}
- nav{width:100%;gap:15px;flex-wrap:wrap}
- nav a{font-size:13px}
- .hero{padding:75px 6%}
- .section{padding:55px 6%}
- .stats{padding:0 5%;grid-template-columns:1fr}
- .admin-item{align-items:flex-start;flex-direction:column}
-}
-</style>
-</head>
+:root{--green:#073b2b;--deep:#05291f;--gold:#d9ad55;--cream:#f7f7f2;--muted:#68756d;--red:#a83232}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--cream);color:#17251e;line-height:1.55}button,input,select,textarea{font:inherit}button{cursor:pointer}header{background:var(--green);color:white;padding:17px 6%;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}.logo{font-size:27px;font-weight:900;letter-spacing:2px;color:var(--gold)}nav{display:flex;gap:16px;align-items:center;flex-wrap:wrap}nav a{color:white;text-decoration:none;font-size:14px}.btn,.primary{border:0;border-radius:5px;padding:11px 17px;background:var(--gold);color:#17251e;font-weight:bold;text-decoration:none;display:inline-block}.dark{background:var(--green);color:white}.light{background:#e8eee8;color:var(--green)}.danger{background:#a83232;color:white}.hero{background:linear-gradient(110deg,#03271c,#0a5139);padding:85px 7%;color:white}.hero>div{max-width:720px}.eyebrow{color:var(--gold);font-weight:bold;letter-spacing:3px;font-size:12px}.hero h1{font-size:clamp(36px,6vw,62px);line-height:1.1;margin:15px 0}.hero p{max-width:620px;color:#dce8df;font-size:17px}.section{padding:55px 7%}.center{text-align:center}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:17px}.card,.panel{background:white;border:1px solid #e5e9e2;border-radius:9px;padding:22px;box-shadow:0 5px 20px #132c1c0c}.card h3,.panel h2{color:var(--green);margin-top:0}.amount{font-size:25px;font-weight:bold;color:#a47a2c}.notice{padding:12px 15px;border-radius:6px;background:#fff2d5;color:#694d13;margin:15px 0}.msg{padding:10px;border-radius:5px;background:#e9f4e9;color:#24552c;margin:10px 0}.err{background:#fbeaea;color:#9b2929}.hidden{display:none!important}.view{display:none;min-height:70vh;padding:35px 6%}.view.active{display:block}.panel{max-width:1000px;margin:0 auto}.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.field{margin:10px 0}.field label{display:block;font-weight:bold;font-size:13px;margin-bottom:5px}.field input,.field select,.field textarea{width:100%;padding:11px;border:1px solid #d6ddd5;border-radius:5px;background:white}.field textarea{min-height:70px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tabs button{border:0;padding:9px 13px;border-radius:5px;background:#e8eee8;color:var(--green)}.tabs button.selected{background:var(--green);color:white}.tablewrap{overflow:auto;margin-top:12px}table{width:100%;border-collapse:collapse;min-width:650px;background:white}th,td{text-align:left;padding:10px;border-bottom:1px solid #e6e9e3;font-size:13px}th{background:#eff3ed;color:var(--green)}.status{font-weight:bold;text-transform:capitalize}.small{font-size:12px}footer{background:var(--deep);color:#d7e1d9;padding:25px;text-align:center;font-size:13px}@media(max-width:650px){header{padding:15px 5%}.hero,.section{padding:45px 5%}.view{padding:20px 4%}.panel{padding:16px}}
+</style></head>
 <body>
-
-<header>
-  <div class="logo">G TOP</div>
-  <nav>
-    <a href="#home">Home</a>
-    <a href="#packages">Investment Plans</a>
-    <a href="#about">About Us</a>
-    <a href="#contact">Contact</a>
-    <a href="#" id="adminLink" class="nav-btn">Administrator</a>
-  </nav>
-</header>
-
-<main id="homePage">
-  <section class="hero">
-    <div class="hero-content">
-      <div class="eyebrow">WELCOME TO G TOP</div>
-      <h1>Build Your Financial Future With <span>Confidence.</span></h1>
-      <p>Explore the investment plans available on G TOP. Discover our packages and find the information you need to make informed financial decisions.</p>
-      <div class="hero-actions">
-        <a class="primary-btn" href="#packages">Explore Packages</a>
-        <a class="outline-btn" href="#about">Learn More</a>
-      </div>
-    </div>
-  </section>
-
-  <div class="stats">
-    <div class="stat"><strong>G TOP</strong><span>Our Platform</span></div>
-    <div class="stat"><strong>Flexible</strong><span>Package Options</span></div>
-    <div class="stat"><strong>Accessible</strong><span>Online Platform</span></div>
-  </div>
-
-  <section class="section" id="packages">
-    <div class="section-heading">
-      <div class="eyebrow">OUR PACKAGES</div>
-      <h2>Explore Our Investment Plans</h2>
-      <p>View the packages currently listed on our platform.</p>
-    </div>
-    <div class="packages" id="packageList">
-      <div class="empty">Loading packages...</div>
-    </div>
-  </section>
-
-  <section class="section features" id="about">
-    <div class="section-heading">
-      <div class="eyebrow">WHY G TOP</div>
-      <h2>A Simple Platform Experience</h2>
-      <p>We aim to make exploring our platform straightforward and convenient.</p>
-    </div>
-    <div class="feature-grid">
-      <div class="feature"><div class="symbol">◇</div><h3>Simple Experience</h3><p>Explore the platform through a clear and easy-to-use interface.</p></div>
-      <div class="feature"><div class="symbol">◎</div><h3>Package Options</h3><p>Review the available package names, amounts and descriptions.</p></div>
-      <div class="feature"><div class="symbol">✓</div><h3>Easy Navigation</h3><p>Find important platform information in one convenient place.</p></div>
-    </div>
-  </section>
-
-  <section class="cta" id="contact">
-    <h2>Discover G TOP Today</h2>
-    <p>Explore the packages and learn more about our platform.</p>
-    <a href="#packages" class="primary-btn">View Packages</a>
-  </section>
-</main>
-
-<section id="adminArea">
-  <div class="admin-box">
-    <div id="loginPanel">
-      <h2>Administrator Login</h2>
-      <div id="loginMessage"></div>
-      <form id="loginForm">
-        <div class="field"><label>Email Address</label><input id="adminEmail" type="email" required></div>
-        <div class="field"><label>Password</label><input id="adminPassword" type="password" required></div>
-        <button class="action-btn" type="submit">Log In</button>
-        <button class="secondary-btn" type="button" id="backHome">Back to Website</button>
-      </form>
-    </div>
-
-    <div id="dashboard" class="hidden">
-      <h2>G TOP Package Manager</h2>
-      <p>Use this section to add, edit or remove packages displayed on the homepage.</p>
-      <div id="packageMessage"></div>
-      <form id="packageForm">
-        <input type="hidden" id="packageId">
-        <div class="field"><label>Package Name</label><input id="packageName" required placeholder="e.g. Starter Plan"></div>
-        <div class="field"><label>Package Amount</label><input id="packageAmount" type="number" min="0.01" step="0.01" required placeholder="e.g. 10000"></div>
-        <div class="field"><label>Package Description</label><textarea id="packageDescription" placeholder="Enter package description"></textarea></div>
-        <button class="action-btn" type="submit" id="savePackage">Save Package</button>
-        <button class="secondary-btn" type="button" id="cancelEdit">Clear</button>
-      </form>
-      <div class="admin-list">
-        <h3>Existing Packages</h3>
-        <div id="adminPackageList">Loading...</div>
-      </div>
-      <button class="danger-btn" type="button" id="logoutButton" style="margin-top:25px">Log Out</button>
-      <button class="secondary-btn" type="button" id="dashboardHome">View Website</button>
-    </div>
-  </div>
+<header><div class="logo">G TOP</div><nav><a href="#" data-view="home">Home</a><a href="#" data-view="plans">Plans</a><a href="#" data-view="login">Customer Login</a><a href="#" data-view="register">Create Account</a><a href="#" data-view="adminLogin">Admin</a><button class="btn light hidden" id="logout">Log out</button></nav></header>
+<div class="notice" style="margin:0;border-radius:0;text-align:center"><b>STAGING / TEST VERSION:</b> No real deposits, withdrawals, transfers or investment activity take place on this website. All balances and records are simulated.</div>
+<main>
+<section id="home" class="view active">
+ <div class="hero"><div><div class="eyebrow">WELCOME TO G TOP</div><h1>A Clearer Way to Review Your Investment Activity</h1><p>Explore the platform, review plan ranges and use the test dashboard to understand account records and administration.</p><button class="btn" data-go="register">Create Test Account</button> <button class="btn light" data-go="plans">Explore Plans</button></div></div>
+ <div class="section center"><h2 style="color:var(--green)">Explore G TOP</h2><p class="muted">A simple account and recordkeeping experience for the staging environment.</p></div>
 </section>
-
-<footer>
-  <div class="logo">G TOP</div>
-  <p>© <span id="year"></span> G TOP. All rights reserved.</p>
-  <p>Please review all terms and risks before making any financial decision. Investment values can go down as well as up.</p>
-</footer>
-
+<section id="plans" class="view"><div class="panel"><h2>Investment plan ranges</h2><p class="muted">These are configurable plan bands only. They do not promise returns or represent an offer to invest.</p><div id="publicPlans" class="grid">Loading plans…</div></div></section>
+<section id="register" class="view"><div class="panel" style="max-width:650px"><h2>Create customer test account</h2><div id="regMsg"></div><form id="registerForm"><div class="formgrid"><div class="field"><label>First name</label><input name="firstName" required></div><div class="field"><label>Surname</label><input name="lastName" required></div><div class="field"><label>Email</label><input name="email" type="email" required></div><div class="field"><label>Phone number</label><input name="phone" required></div><div class="field"><label>Country</label><select name="country" required id="country"><option value="">Choose country</option></select></div><div class="field"><label>Password (minimum 10 characters)</label><input name="password" type="password" minlength="10" required></div><div class="field"><label>Confirm password</label><input name="confirmPassword" type="password" minlength="10" required></div></div><button class="btn dark">Create account</button></form></div></section>
+<section id="login" class="view"><div class="panel" style="max-width:500px"><h2>Customer login</h2><div id="loginMsg"></div><form id="loginForm"><div class="field"><label>Email or phone</label><input name="identifier" required></div><div class="field"><label>Password</label><input name="password" type="password" required></div><button class="btn dark">Log in</button></form></div></section>
+<section id="adminLogin" class="view"><div class="panel" style="max-width:500px"><h2>Administrator login</h2><div id="adminLoginMsg"></div><form id="adminLoginForm"><div class="field"><label>Admin email</label><input name="email" type="email" required></div><div class="field"><label>Password</label><input name="password" type="password" required></div><button class="btn dark">Log in</button></form></div></section>
+<section id="customer" class="view"><div class="panel"><h2>Customer dashboard</h2><p id="welcome" class="muted"></p><div class="notice">Test environment only. Approved test deposits create simulated balances; no cryptocurrency is received or sent.</div><div id="customerStats" class="grid"></div><div class="tabs"><button data-tab="activity" class="selected">Overview</button><button data-tab="deposit">Test deposit</button><button data-tab="invest">Create test investment</button><button data-tab="withdraw">Test withdrawal</button><button data-tab="history">History</button></div><div id="tab-activity"><h3>My investments</h3><div id="myInvestments"></div></div>
+<div id="tab-deposit" class="hidden"><h3>Submit test deposit record</h3><p class="small muted">Enter a sample reference only. Do not send funds or use a real wallet address.</p><form id="depositForm" class="formgrid"><div class="field"><label>Amount (USD test units)</label><input name="amount" type="number" min="1" step=".01" required></div><div class="field"><label>Network</label><select name="network"><option>BTC</option><option>USDT TRC20</option><option>TRON</option></select></div><div class="field"><label>Sample reference</label><input name="reference" required placeholder="TEST-REFERENCE-001"></div><div class="field"><button class="btn dark">Submit test record</button></div></form><div id="depositMsg"></div></div>
+<div id="tab-invest" class="hidden"><h3>Create test investment</h3><form id="investForm" class="formgrid"><div class="field"><label>Plan</label><select name="planId" id="investPlan" required></select></div><div class="field"><label>Amount (USD test units)</label><input name="amount" type="number" min="1" step=".01" required></div><div class="field"><label>Duration</label><select name="durationDays"><option value="4">4 days</option><option value="5">5 days</option><option value="6">6 days</option><option value="7">7 days</option><option value="8">8 days</option><option value="9">9 days</option><option value="10">10 days</option><option value="11">11 days</option><option value="12">12 days</option><option value="13">13 days</option><option value="14">14 days</option></select></div><div class="field"><button class="btn dark">Create test investment</button></div></form><div id="investMsg"></div></div>
+<div id="tab-withdraw" class="hidden"><h3>Submit test withdrawal request</h3><form id="withdrawForm" class="formgrid"><div class="field"><label>Amount (USD test units)</label><input name="amount" type="number" min="1" step=".01" required></div><div class="field"><label>Network</label><select name="network"><option>BTC</option><option>USDT TRC20</option><option>TRON</option></select></div><div class="field"><label>Sample destination</label><input name="destination" required minlength="8" placeholder="TEST-DESTINATION"></div><div class="field"><button class="btn dark">Submit test request</button></div></form><div id="withdrawMsg"></div></div>
+<div id="tab-history" class="hidden"><h3>Deposits</h3><div id="depositHistory"></div><h3>Withdrawals</h3><div id="withdrawHistory"></div><h3>Performance records</h3><div id="performanceHistory"></div><h3>Transactions</h3><div id="transactionHistory"></div></div></div></section>
+<section id="admin" class="view"><div class="panel"><h2>Administrator dashboard</h2><p class="muted">Manage test records only. Never approve a record as evidence of real funds received.</p><div id="adminStats" class="grid"></div><div class="tabs"><button data-atab="deposits" class="selected">Test deposits</button><button data-atab="withdrawals">Test withdrawals</button><button data-atab="customers">Customers</button><button data-atab="plans">Plans</button><button data-atab="investments">Investments</button><button data-atab="performance">Record actual test P/L</button><button data-atab="logs">Audit log</button></div><div id="adminTab-deposits"><div id="adminDeposits"></div></div><div id="adminTab-withdrawals" class="hidden"><div id="adminWithdrawals"></div></div><div id="adminTab-customers" class="hidden"><div id="adminCustomers"></div></div><div id="adminTab-plans" class="hidden"><h3>Add a plan</h3><form id="planForm" class="formgrid"><div class="field"><label>Name</label><input name="name" required></div><div class="field"><label>Minimum</label><input name="minAmount" type="number" step=".01" required></div><div class="field"><label>Maximum</label><input name="maxAmount" type="number" step=".01" required></div><div class="field"><label>Description</label><input name="description"></div><div class="field"><button class="btn dark">Add plan</button></div></form><div id="adminPlans"></div></div><div id="adminTab-investments" class="hidden"><div id="adminInvestments"></div></div><div id="adminTab-performance" class="hidden"><h3>Record actual test performance</h3><p class="small muted">Enter only a real, evidenced gain or loss in the test record. Do not invent returns.</p><form id="performanceForm" class="formgrid"><div class="field"><label>Investment ID</label><input name="investmentId" type="number" min="1" required></div><div class="field"><label>Gain / loss amount (+ or -)</label><input name="amount" type="number" step=".01" required></div><div class="field"><label>Evidence / explanation</label><input name="note" required></div><div class="field"><button class="btn dark">Save performance</button></div></form><div id="performanceMsg"></div></div><div id="adminTab-logs" class="hidden"><div id="adminLogs"></div></div></div></section>
+</main><footer><div class="logo">G TOP</div><p>© <span id="year"></span> G TOP. Staging software demonstration only.</p></footer>
 <script>
-const $ = id => document.getElementById(id);
-let packages = [];
-
-function showMessage(id, message, isError=false) {
-  const box = $(id);
-  box.textContent = message;
-  box.className = message ? "message" + (isError ? " error" : "") : "";
-}
-
-async function api(url, options={}) {
-  const response = await fetch(url, {
-    credentials: "same-origin",
-    ...options,
-    headers: {
-      ...(options.body ? {"Content-Type":"application/json"} : {}),
-      ...(options.headers || {})
-    }
-  });
-  let data = {};
-  try { data = await response.json(); } catch {}
-  if (!response.ok) throw new Error(data.error || "Something went wrong.");
-  return data;
-}
-
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
-  })[char]);
-}
-
-function money(value) {
-  return Number(value).toLocaleString("en-NG", {
-    maximumFractionDigits:2
-  });
-}
-
-async function loadPackages() {
-  try {
-    packages = await api("/api/packages");
-    $("packageList").innerHTML = packages.length
-      ? packages.map(p => `
-        <article class="package">
-          <h3>${escapeHTML(p.name)}</h3>
-          <div class="amount">₦${money(p.amount)}</div>
-          <p>${escapeHTML(p.description || "View this package for more information.")}</p>
-          <button type="button" class="package-info" data-name="${escapeHTML(p.name)}">View Package</button>
-        </article>`).join("")
-      : '<div class="empty">No packages have been added yet.</div>';
-  } catch {
-    $("packageList").innerHTML = '<div class="empty">Unable to load packages. Please refresh the page.</div>';
-  }
-}
-
-async function loadAdminPackages() {
-  try {
-    const items = await api("/api/packages");
-    $("adminPackageList").innerHTML = items.length
-      ? items.map(p => `
-        <div class="admin-item">
-          <div><strong>${escapeHTML(p.name)}</strong>
-            <small>₦${money(p.amount)} — ${escapeHTML(p.description || "")}</small>
-          </div>
-          <div class="admin-actions">
-            <button class="secondary-btn edit-btn" data-id="${p.id}">Edit</button>
-            <button class="danger-btn delete-btn" data-id="${p.id}">Delete</button>
-          </div>
-        </div>`).join("")
-      : "<p>No packages added yet.</p>";
-  } catch(error) {
-    $("adminPackageList").textContent = error.message;
-  }
-}
-
-function resetPackageForm() {
-  $("packageForm").reset();
-  $("packageId").value = "";
-  $("savePackage").textContent = "Save Package";
-  showMessage("packageMessage", "");
-}
-
-async function checkAdmin() {
-  try {
-    const result = await api("/api/admin/me");
-    $("loginPanel").classList.toggle("hidden", result.loggedIn);
-    $("dashboard").classList.toggle("hidden", !result.loggedIn);
-    if (result.loggedIn) loadAdminPackages();
-  } catch {
-    $("loginPanel").classList.remove("hidden");
-    $("dashboard").classList.add("hidden");
-  }
-}
-
-function openAdmin() {
-  $("homePage").style.display = "none";
-  $("adminArea").style.display = "block";
-  checkAdmin();
-  window.scrollTo(0,0);
-}
-
-function openHome() {
-  $("adminArea").style.display = "none";
-  $("homePage").style.display = "block";
-  window.scrollTo(0,0);
-  loadPackages();
-}
-
-$("adminLink").addEventListener("click", e => {
-  e.preventDefault();
-  openAdmin();
-});
-
-$("backHome").addEventListener("click", openHome);
-$("dashboardHome").addEventListener("click", openHome);
-
-$("loginForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  showMessage("loginMessage", "");
-  try {
-    await api("/api/admin/login", {
-      method:"POST",
-      body:JSON.stringify({
-        email:$("adminEmail").value,
-        password:$("adminPassword").value
-      })
-    });
-    $("adminPassword").value = "";
-    await checkAdmin();
-  } catch(error) {
-    showMessage("loginMessage", error.message, true);
-  }
-});
-
-$("packageForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  showMessage("packageMessage", "");
-  const id = $("packageId").value;
-  const body = {
-    name:$("packageName").value.trim(),
-    amount:$("packageAmount").value,
-    description:$("packageDescription").value.trim()
-  };
-  try {
-    await api(id ? "/api/admin/packages/" + encodeURIComponent(id) : "/api/admin/packages", {
-      method:id ? "PUT" : "POST",
-      body:JSON.stringify(body)
-    });
-    resetPackageForm();
-    showMessage("packageMessage", "Package saved successfully.");
-    await loadAdminPackages();
-    await loadPackages();
-  } catch(error) {
-    if (error.message.toLowerCase().includes("log in")) {
-      showMessage("packageMessage", "Your admin session has expired. Please log in again.", true);
-      await checkAdmin();
-    } else {
-      showMessage("packageMessage", error.message, true);
-    }
-  }
-});
-
-$("adminPackageList").addEventListener("click", async e => {
-  const edit = e.target.closest(".edit-btn");
-  const del = e.target.closest(".delete-btn");
-
-  if (edit) {
-    const item = packages.find(p => String(p.id) === edit.dataset.id);
-    if (!item) {
-      try {
-        const all = await api("/api/packages");
-        const p = all.find(x => String(x.id) === edit.dataset.id);
-        if (p) fillEdit(p);
-      } catch(error) { showMessage("packageMessage", error.message, true); }
-      return;
-    }
-    fillEdit(item);
-  }
-
-  if (del) {
-    if (!confirm("Are you sure you want to delete this package?")) return;
-    try {
-      await api("/api/admin/packages/" + encodeURIComponent(del.dataset.id), {method:"DELETE"});
-      showMessage("packageMessage", "Package deleted successfully.");
-      await loadAdminPackages();
-      await loadPackages();
-    } catch(error) {
-      showMessage("packageMessage", error.message, true);
-    }
-  }
-});
-
-function fillEdit(p) {
-  $("packageId").value = p.id;
-  $("packageName").value = p.name;
-  $("packageAmount").value = p.amount;
-  $("packageDescription").value = p.description || "";
-  $("savePackage").textContent = "Update Package";
-  $("packageForm").scrollIntoView({behavior:"smooth"});
-}
-
-$("cancelEdit").addEventListener("click", resetPackageForm);
-
-$("logoutButton").addEventListener("click", async () => {
-  try {
-    await api("/api/admin/logout", {method:"POST"});
-    resetPackageForm();
-    openAdmin();
-  } catch(error) {
-    showMessage("packageMessage", error.message, true);
-  }
-});
-
-$("packageList").addEventListener("click", e => {
-  if (e.target.closest(".package-info")) {
-    const name = e.target.closest(".package-info").dataset.name;
-    alert("You selected " + name + ". Please review the package details carefully before making any financial decision.");
-  }
-});
-
-$("year").textContent = new Date().getFullYear();
-loadPackages();
-</script>
-</body>
-</html>
+const $=id=>document.getElementById(id);let csrf="",me=null,plans=[],records=null;
+const countries=["Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belgium","Benin","Bhutan","Bolivia","Botswana","Brazil","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo","Costa Rica","Croatia","Cuba","Cyprus","Czechia","Democratic Republic of the Congo","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kuwait","Lebanon","Lesotho","Liberia","Libya","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Mauritania","Mauritius","Mexico","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Lucia","Samoa","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Togo","Trinidad and Tobago","Tunisia","Turkey","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"];
+$("country").innerHTML+=[...new Set(countries)].sort().map(c=>`<option>${c}</option>`).join("");
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function money(n){return "$"+Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function msg(id,text,error=false){$(id).innerHTML=text?`<div class="msg ${error?"err":""}">${esc(text)}</div>`:"";}
+async function api(url,opts={}){const r=await fetch(url,{credentials:"same-origin",...opts,headers:{...(opts.body?{"Content-Type":"application/json"}:{}),...(opts.method&&opts.method!=="GET"?{"X-CSRF-Token":csrf}:{}),...(opts.headers||{})}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||"Request failed");return d;}
+function formData(form){return Object.fromEntries(new FormData(form).entries());}
+function go(id){document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));$(id).classList.add("active");window.scrollTo(0,0);}
+document.querySelectorAll("[data-view]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();go(a.dataset.view)}));
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+async function refreshMe(){const d=await api("/api/me");csrf=d.csrfToken;me=d; $("logout").classList.toggle("hidden",d.role==="guest");if(d.role==="customer"){go("customer");$("welcome").textContent=`Welcome, ${d.user.first_name} ${d.user.last_name}`;await loadCustomer();}else if(d.role==="admin"){go("admin");await loadAdmin();}return d;}
+async function loadPlans(){plans=await api("/api/plans");$("publicPlans").innerHTML=plans.map(p=>`<div class="card"><h3>${esc(p.name)}</h3><div class="amount">${money(p.min_amount)} – ${money(p.max_amount)}</div><p class="muted">${esc(p.description)}</p><p class="small muted">Duration selection: 4–14 days. No return is promised.</p></div>`).join("");$("investPlan").innerHTML=plans.map(p=>`<option value="${p.id}">${esc(p.name)} (${money(p.min_amount)}–${money(p.max_amount)})</option>`).join("");}
+function table(rows,cols){if(!rows||!rows.length)return "<p class='muted'>No records yet.</p>";return `<div class="tablewrap"><table><thead><tr>${cols.map(c=>`<th>${c[1]}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(c=>`<td>${c[2]?c[2](r):esc(r[c[0]])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;}
+async function loadCustomer(){const d=await api("/api/customer/summary");$("customerStats").innerHTML=[["Available test balance",money(d.balance)],["Investments",d.investments.length],["Deposits",d.deposits.length],["Withdrawals",d.withdrawals.length]].map(x=>`<div class="card"><div class="muted">${x[0]}</div><div class="amount">${x[1]}</div></div>`).join("");$("myInvestments").innerHTML=table(d.investments,[["id","ID"],["plan_name","Plan"],["amount","Amount",r=>money(r.amount)],["duration_days","Days"],["status","Status"],["ends_at","Ends",r=>new Date(r.ends_at).toLocaleDateString()]]);$("depositHistory").innerHTML=table(d.deposits,[["id","ID"],["amount","Amount",r=>money(r.amount)],["network","Network"],["status","Status"],["created_at","Date",r=>new Date(r.created_at).toLocaleString()]]);$("withdrawHistory").innerHTML=table(d.withdrawals,[["id","ID"],["amount","Amount",r=>money(r.amount)],["network","Network"],["status","Status"]]);$("performanceHistory").innerHTML=table(d.performance,[["investment_id","Investment"],["amount","Gain / loss",r=>money(r.amount)],["note","Explanation"],["created_at","Date",r=>new Date(r.created_at).toLocaleString()]]);$("transactionHistory").innerHTML=table(d.transactions,[["kind","Type"],["amount","Amount",r=>money(r.amount)],["reference","Reference"],["note","Note"]]);}
+document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");["activity","deposit","invest","withdraw","history"].forEach(t=>$("tab-"+t).classList.toggle("hidden",t!==b.dataset.tab));});
+document.querySelectorAll("[data-atab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-atab]").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");["deposits","withdrawals","customers","plans","investments","performance","logs"].forEach(t=>$("adminTab-"+t).classList.toggle("hidden",t!==b.dataset.atab));});
+$("registerForm").onsubmit=async e=>{e.preventDefault();try{await api("/api/customer/register",{method:"POST",body:JSON.stringify(formData(e.target))});await refreshMe();}catch(x){msg("regMsg",x.message,true)}};
+$("loginForm").onsubmit=async e=>{e.preventDefault();try{await api("/api/customer/login",{method:"POST",body:JSON.stringify(formData(e.target))});await refreshMe();}catch(x){msg("loginMsg",x.message,true)}};
+$("adminLoginForm").onsubmit=async e=>{e.preventDefault();try{await api("/api/admin/login",{method:"POST",body:JSON.stringify(formData(e.target))});await refreshMe();}catch(x){msg("adminLoginMsg",x.message,true)}};
+$("logout").onclick=async()=>{await api("/api/logout",{method:"POST"});location.reload()};
+$("depositForm").onsubmit=async e=>{e.preventDefault();try{const d=await api("/api/customer/deposits",{method:"POST",body:JSON.stringify(formData(e.target))});msg("depositMsg",d.message);e.target.reset();}catch(x){msg("depositMsg",x.message,true)}};
+$("investForm").onsubmit=async e=>{e.preventDefault();try{const d=await api("/api/customer/investments",{method:"POST",body:JSON.stringify(formData(e.target))});msg("investMsg",d.message);await loadCustomer();}catch(x){msg("investMsg",x.message,true)}};
+$("withdrawForm").onsubmit=async e=>{e.preventDefault();try{const d=await api("/api/customer/withdrawals",{method:"POST",body:JSON.stringify(formData(e.target))});msg("withdrawMsg",d.message);e.target.reset();await loadCustomer();}catch(x){msg("withdrawMsg",x.message,true)}};
+async function loadAdmin(){const [o,r]=await Promise.all([api("/api/admin/overview"),api("/api/admin/records")]);records=r;$("adminStats").innerHTML=[["Customers",o.customers],["Pending test deposits",o.pendingDeposits],["Pending test withdrawals",o.pendingWithdrawals],["Active test investments",o.activeInvestments]].map(x=>`<div class="card"><div class="muted">${x[0]}</div><div class="amount">${x[1]}</div></div>`).join("");$("adminDeposits").innerHTML=table(r.deposits,[["id","ID"],["email","Customer"],["amount","Amount",x=>money(x.amount)],["network","Network"],["reference","Reference"],["status","Status"],["id","Review",x=>x.status==="pending"?`<button class="btn dark" onclick="reviewDeposit(${x.id},'approved')">Approve test</button> <button class="btn danger" onclick="reviewDeposit(${x.id},'rejected')">Reject</button>`:"—"]]);$("adminWithdrawals").innerHTML=table(r.withdrawals,[["id","ID"],["email","Customer"],["amount","Amount",x=>money(x.amount)],["network","Network"],["destination","Destination"],["status","Status"],["id","Review",x=>x.status==="pending"?`<button class="btn dark" onclick="reviewWithdrawal(${x.id},'approved')">Approve test</button> <button class="btn danger" onclick="reviewWithdrawal(${x.id},'rejected')">Reject</button>`:"—"]]);$("adminCustomers").innerHTML=table(await api("/api/admin/customers"),[["id","ID"],["first_name","First name"],["last_name","Surname"],["email","Email"],["phone","Phone"],["country","Country"],["status","Status"],["id","Action",x=>`<button class="btn ${x.status==="active"?"danger":"dark"}" onclick="setCustomer(${x.id},'${x.status==="active"?"suspended":"active"}')">${x.status==="active"?"Suspend":"Activate"}</button>`]]);$("adminPlans").innerHTML=table(r.plans,[["id","ID"],["name","Plan"],["min_amount","Min",x=>money(x.min_amount)],["max_amount","Max",x=>money(x.max_amount)],["description","Description"]]);$("adminInvestments").innerHTML=table(r.investments,[["id","ID"],["email","Customer"],["plan_name","Plan"],["amount","Amount",x=>money(x.amount)],["duration_days","Days"],["status","Status"]]);$("adminLogs").innerHTML=table(r.logs,[["actor_type","Actor"],["actor_id","ID"],["action","Action"],["details","Details"],["created_at","Date",x=>new Date(x.created_at).toLocaleString()]]);}
+window.reviewDeposit=async(id,status)=>{const note=prompt("Admin note (test review):")||"";try{await api(`/api/admin/deposits/${id}/review`,{method:"POST",body:JSON.stringify({status,note})});await loadAdmin();}catch(e){alert(e.message)}};
+window.reviewWithdrawal=async(id,status)=>{const note=prompt("Admin note (test review):")||"";try{await api(`/api/admin/withdrawals/${id}/review`,{method:"POST",body:JSON.stringify({status,note})});await loadAdmin();}catch(e){alert(e.message)}};
+window.setCustomer=async(id,status)=>{try{await api(`/api/admin/customers/${id}`,{method:"PATCH",body:JSON.stringify({status})});await loadAdmin()}catch(e){alert(e.message)}};
+$("planForm").onsubmit=async e=>{e.preventDefault();try{await api("/api/admin/plans",{method:"POST",body:JSON.stringify(formData(e.target))});e.target.reset();await loadAdmin();await loadPlans();}catch(x){alert(x.message)}};
+$("performanceForm").onsubmit=async e=>{e.preventDefault();try{await api("/api/admin/performance",{method:"POST",body:JSON.stringify(formData(e.target))});msg("performanceMsg","Performance record saved.");e.target.reset();}catch(x){msg("performanceMsg",x.message,true)}};
+$("year").textContent=new Date().getFullYear();
+(async()=>{try{const c=await api("/api/csrf");csrf=c.csrfToken;await loadPlans();await refreshMe()}catch(e){console.error(e);}})();
+</script></body></html>

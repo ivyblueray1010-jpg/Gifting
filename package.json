@@ -1,8 +1,8 @@
-
 {
-  "name": "gtop-investment",
-  "version": "1.0.0",
-  "description": "G TOP investment landing page and admin package manager",
+  "name": "gtop-investment-upgrade",
+  "version": "2.0.0",
+  "private": true,
+  "description": "G TOP staging platform starter",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -20,4 +20,3 @@
     "pg": "^8.13.1"
   }
 }
-
