@@ -28,8 +28,9 @@ app.use(session({
     createTableIfMissing: true
   }),
   secret: process.env.SESSION_SECRET || "change-this-secret",
-  resave: false,
-  saveUninitialized: false,
+resave: false,
+saveUninitialized: false,
+proxy: true,
   cookie: {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
