@@ -7,520 +7,411 @@
 <title>G TOP | Investment Platform</title>
 <style>
 :root {
-  --green:#10b981;
-  --dark:#071b17;
-  --panel:#102a24;
-  --muted:#a6b9b2;
-  --white:#ffffff;
+  --green:#073b2b;
+  --deep:#05291f;
+  --gold:#d9ad55;
+  --cream:#f7f7f2;
+  --white:#fff;
+  --muted:#6c786f;
 }
-* {box-sizing:border-box;margin:0;padding:0}
-body {
-  font-family:Arial,Helvetica,sans-serif;
-  background:#081712;
-  color:var(--white);
-  line-height:1.6;
-}
-header {
-  padding:20px 7%;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  border-bottom:1px solid #ffffff18;
-}
-.logo {font-size:27px;font-weight:900;color:#fff}
-.logo span {color:var(--green)}
-nav {display:flex;gap:25px;align-items:center}
-nav a {color:#d8e5df;text-decoration:none;font-size:14px}
-button,.btn {
-  border:0;
-  border-radius:8px;
-  padding:12px 20px;
-  background:var(--green);
-  color:#04140f;
-  font-weight:bold;
-  cursor:pointer;
-  text-decoration:none;
-}
-button:hover,.btn:hover {opacity:.85}
-.hero {
-  padding:95px 7% 85px;
-  text-align:center;
-  background:radial-gradient(ellipse at top,#174c39,#081712 65%);
-}
-.tag {
-  color:#6ee7b7;
-  border:1px solid #10b98166;
-  display:inline-block;
-  padding:7px 14px;
-  border-radius:30px;
-  font-size:12px;
-  margin-bottom:22px;
-}
-.hero h1 {
-  font-size:clamp(38px,6vw,66px);
-  line-height:1.12;
-  max-width:850px;
-  margin:0 auto 20px;
-}
-.hero h1 span {color:var(--green)}
-.hero p {
-  color:var(--muted);
-  max-width:600px;
-  margin:0 auto 30px;
-}
-.section {padding:75px 7%}
-.section-heading {text-align:center;margin-bottom:40px}
-.section-heading h2 {font-size:34px;margin-bottom:10px}
-.section-heading p {color:var(--muted)}
-.features {
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:20px;
-  margin-top:45px;
-}
-.feature,.package,.admin-panel {
-  background:var(--panel);
-  border:1px solid #ffffff13;
-  padding:25px;
-  border-radius:14px;
-}
-.feature h3 {margin:12px 0 7px}
-.feature p,.package p {color:var(--muted);font-size:14px}
-.packages {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:20px;
-}
-.package {transition:.2s}
-.package:hover {border-color:var(--green);transform:translateY(-4px)}
-.package h3 {font-size:20px;margin-bottom:10px}
-.package .amount {font-size:34px;font-weight:800;color:var(--green);margin:12px 0}
-.package button {margin-top:20px;width:100%}
-.notice {
-  color:#a6b9b2;
-  font-size:12px;
-  text-align:center;
-  margin-top:25px;
-}
-.cta {
-  background:#10392b;
-  border-radius:18px;
-  padding:45px 20px;
-  text-align:center;
-}
-.cta h2 {font-size:30px;margin-bottom:10px}
-.cta p {color:var(--muted);margin-bottom:20px}
-footer {
-  padding:30px 7%;
-  border-top:1px solid #ffffff18;
-  color:var(--muted);
-  font-size:13px;
-  text-align:center;
-}
-.hidden {display:none!important}
-.admin-page {
-  min-height:100vh;
-  padding:45px 6%;
-  background:#081712;
-}
-.admin-wrap {max-width:900px;margin:auto}
-.admin-panel {margin-top:20px}
-.admin-panel h2 {margin-bottom:15px}
-input,textarea {
-  width:100%;
-  padding:13px;
-  margin:8px 0 15px;
-  border-radius:7px;
-  border:1px solid #355347;
-  background:#081712;
-  color:white;
-  font:inherit;
-}
-label {font-size:13px;color:#c5d5ce}
-.form-grid {display:grid;grid-template-columns:1fr 1fr;gap:15px}
-.package-row {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:15px;
-  padding:15px 0;
-  border-bottom:1px solid #ffffff20;
-}
-.package-row small {color:var(--muted)}
-.actions {display:flex;gap:8px}
-.actions button {padding:8px 12px}
-.delete {background:#ef4444;color:white}
-.secondary {background:#31483e;color:white}
-.error {color:#fca5a5;font-size:13px;margin-bottom:10px}
-.success {color:#6ee7b7;font-size:13px;margin-bottom:10px}
-.admin-link {
-  display:inline-block;
-  color:#91a99f;
-  margin-top:20px;
-  font-size:12px;
-  text-decoration:none;
-}
-@media(max-width:700px) {
-  header {padding:17px 5%}
-  nav {gap:12px}
-  nav a {font-size:12px}
-  .hero {padding:75px 6%}
-  .section {padding:55px 6%}
-  .features {grid-template-columns:1fr}
-  .form-grid {grid-template-columns:1fr}
-  .package-row {align-items:flex-start;flex-direction:column}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:var(--cream);color:#17251e;line-height:1.6}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+header{background:var(--green);color:white;padding:18px 7%;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.logo{font-size:27px;font-weight:900;letter-spacing:2px;color:var(--gold)}
+nav{display:flex;gap:25px;align-items:center}
+nav a{color:white;text-decoration:none;font-size:14px}
+nav a:hover{color:var(--gold)}
+.nav-btn,.primary-btn{background:var(--gold);color:#18271d;padding:12px 21px;border:0;border-radius:5px;font-weight:bold;text-decoration:none;display:inline-block}
+.hero{background:linear-gradient(110deg,rgba(3,39,28,.97),rgba(7,59,43,.88)),radial-gradient(circle at 80% 30%,#477d5a,#05291f);color:white;padding:105px 7% 110px;min-height:470px}
+.hero-content{max-width:690px}
+.eyebrow{color:var(--gold);font-weight:bold;letter-spacing:3px;font-size:12px;margin-bottom:17px}
+.hero h1{font-size:clamp(38px,6vw,65px);line-height:1.12;margin-bottom:22px}
+.hero h1 span{color:var(--gold)}
+.hero p{color:#dce8df;max-width:570px;font-size:17px;margin-bottom:30px}
+.hero-actions{display:flex;gap:13px;flex-wrap:wrap}
+.outline-btn{padding:11px 21px;border:1px solid #d9ad55;color:white;border-radius:5px;text-decoration:none}
+.section{padding:75px 7%}
+.section-heading{text-align:center;max-width:650px;margin:0 auto 38px}
+.section-heading .eyebrow{color:#9b752d}
+.section-heading h2{font-size:34px;color:var(--green);margin-bottom:10px}
+.section-heading p{color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:-35px;padding:0 7%;position:relative}
+.stat{background:white;padding:23px;text-align:center;border-radius:8px;box-shadow:0 8px 25px #132c1c12}
+.stat strong{display:block;font-size:25px;color:var(--green)}
+.stat span{font-size:13px;color:var(--muted)}
+.packages{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:22px}
+.package{background:white;border:1px solid #e7e9e2;border-radius:10px;padding:27px;box-shadow:0 8px 24px #163a2410}
+.package h3{font-size:21px;color:var(--green);margin-bottom:12px}
+.package .amount{font-size:30px;font-weight:800;color:#a47a2c;margin:10px 0}
+.package p{color:var(--muted);font-size:14px;min-height:48px}
+.package button{margin-top:20px;width:100%;background:var(--green);color:white;border:0;border-radius:5px;padding:12px;font-weight:bold}
+.empty{text-align:center;color:var(--muted);padding:25px}
+.features{background:#edf1e9}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:20px}
+.feature{background:white;padding:25px;border-radius:8px}
+.feature .symbol{font-size:27px;color:#b58a3e}
+.feature h3{color:var(--green);margin:10px 0}
+.feature p{font-size:14px;color:var(--muted)}
+.cta{background:var(--green);color:white;text-align:center;padding:65px 7%}
+.cta h2{font-size:32px;margin-bottom:12px}
+.cta p{color:#d5e2d8;margin-bottom:22px}
+footer{background:var(--deep);color:#d7e1d9;padding:35px 7%;text-align:center;font-size:13px}
+footer .logo{margin-bottom:8px}
+#adminArea{display:none;padding:55px 7%;min-height:70vh;background:#f3f5f0}
+.admin-box{max-width:850px;margin:auto;background:white;border-radius:10px;padding:28px;box-shadow:0 5px 25px #0000000d}
+.admin-box h2{color:var(--green);margin-bottom:20px}
+.field{margin-bottom:15px}
+.field label{display:block;font-weight:bold;font-size:14px;margin-bottom:6px}
+.field input,.field textarea{width:100%;padding:12px;border:1px solid #d6ddd5;border-radius:5px}
+.field textarea{min-height:85px;resize:vertical}
+.action-btn{background:var(--green);color:white;border:0;padding:12px 20px;border-radius:5px;font-weight:bold}
+.secondary-btn{background:#e8eee8;color:var(--green);border:0;padding:10px 15px;border-radius:5px}
+.danger-btn{background:#a83232;color:white;border:0;padding:8px 12px;border-radius:4px}
+.admin-list{margin-top:30px}
+.admin-item{border:1px solid #e1e6df;padding:15px;border-radius:6px;margin:10px 0;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.admin-item small{display:block;color:var(--muted)}
+.admin-actions{display:flex;gap:7px;flex-wrap:wrap}
+.message{padding:10px;margin:12px 0;border-radius:5px;background:#edf5eb;color:#24552c}
+.error{background:#fbeaea;color:#9b2929}
+.hidden{display:none!important}
+@media(max-width:700px){
+ header{flex-wrap:wrap;padding:16px 5%}
+ nav{width:100%;gap:15px;flex-wrap:wrap}
+ nav a{font-size:13px}
+ .hero{padding:75px 6%}
+ .section{padding:55px 6%}
+ .stats{padding:0 5%;grid-template-columns:1fr}
+ .admin-item{align-items:flex-start;flex-direction:column}
 }
 </style>
 </head>
 <body>
 
-<div id="website">
 <header>
-  <div class="logo">G <span>TOP</span></div>
+  <div class="logo">G TOP</div>
   <nav>
     <a href="#home">Home</a>
-    <a href="#packages">Packages</a>
-    <a href="#about">About</a>
-    <a href="#packages" class="btn">Explore</a>
+    <a href="#packages">Investment Plans</a>
+    <a href="#about">About Us</a>
+    <a href="#contact">Contact</a>
+    <a href="#" id="adminLink" class="nav-btn">Administrator</a>
   </nav>
 </header>
 
-<section class="hero" id="home">
-  <div class="tag">WELCOME TO G TOP</div>
-  <h1>Build Your Financial <span>Future</span></h1>
-  <p>
-    Explore our investment package information and discover
-    a platform designed to make your financial journey easier.
-  </p>
-  <a href="#packages" class="btn">Explore Packages</a>
-</section>
-
-<section class="section" id="about">
-  <div class="section-heading">
-    <h2>Why G TOP?</h2>
-    <p>A simple and accessible platform experience.</p>
-  </div>
-  <div class="features">
-    <div class="feature">
-      <h3>01. Simple Experience</h3>
-      <p>Explore package information through a clean and easy-to-use website.</p>
+<main id="homePage">
+  <section class="hero">
+    <div class="hero-content">
+      <div class="eyebrow">WELCOME TO G TOP</div>
+      <h1>Build Your Financial Future With <span>Confidence.</span></h1>
+      <p>Explore the investment plans available on G TOP. Discover our packages and find the information you need to make informed financial decisions.</p>
+      <div class="hero-actions">
+        <a class="primary-btn" href="#packages">Explore Packages</a>
+        <a class="outline-btn" href="#about">Learn More</a>
+      </div>
     </div>
-    <div class="feature">
-      <h3>02. Clear Information</h3>
-      <p>View package names, amounts and descriptions in one place.</p>
-    </div>
-    <div class="feature">
-      <h3>03. Easy Access</h3>
-      <p>Browse the website on your computer, tablet or mobile phone.</p>
-    </div>
-  </div>
-</section>
+  </section>
 
-<section class="section" id="packages">
-  <div class="section-heading">
-    <h2>Our Packages</h2>
-    <p>Explore the available package information.</p>
+  <div class="stats">
+    <div class="stat"><strong>G TOP</strong><span>Our Platform</span></div>
+    <div class="stat"><strong>Flexible</strong><span>Package Options</span></div>
+    <div class="stat"><strong>Accessible</strong><span>Online Platform</span></div>
   </div>
-  <div class="packages" id="packageList">
-    <p>Loading packages...</p>
-  </div>
-  <p class="notice">
-    Package amounts are illustrative. This website does not accept
-    deposits, process investments or guarantee financial returns.
-  </p>
-</section>
 
-<section class="section">
-  <div class="cta">
-    <h2>Welcome to G TOP</h2>
-    <p>Explore the platform and learn about our available packages.</p>
-    <a href="#packages" class="btn">View Packages</a>
+  <section class="section" id="packages">
+    <div class="section-heading">
+      <div class="eyebrow">OUR PACKAGES</div>
+      <h2>Explore Our Investment Plans</h2>
+      <p>View the packages currently listed on our platform.</p>
+    </div>
+    <div class="packages" id="packageList">
+      <div class="empty">Loading packages...</div>
+    </div>
+  </section>
+
+  <section class="section features" id="about">
+    <div class="section-heading">
+      <div class="eyebrow">WHY G TOP</div>
+      <h2>A Simple Platform Experience</h2>
+      <p>We aim to make exploring our platform straightforward and convenient.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature"><div class="symbol">◇</div><h3>Simple Experience</h3><p>Explore the platform through a clear and easy-to-use interface.</p></div>
+      <div class="feature"><div class="symbol">◎</div><h3>Package Options</h3><p>Review the available package names, amounts and descriptions.</p></div>
+      <div class="feature"><div class="symbol">✓</div><h3>Easy Navigation</h3><p>Find important platform information in one convenient place.</p></div>
+    </div>
+  </section>
+
+  <section class="cta" id="contact">
+    <h2>Discover G TOP Today</h2>
+    <p>Explore the packages and learn more about our platform.</p>
+    <a href="#packages" class="primary-btn">View Packages</a>
+  </section>
+</main>
+
+<section id="adminArea">
+  <div class="admin-box">
+    <div id="loginPanel">
+      <h2>Administrator Login</h2>
+      <div id="loginMessage"></div>
+      <form id="loginForm">
+        <div class="field"><label>Email Address</label><input id="adminEmail" type="email" required></div>
+        <div class="field"><label>Password</label><input id="adminPassword" type="password" required></div>
+        <button class="action-btn" type="submit">Log In</button>
+        <button class="secondary-btn" type="button" id="backHome">Back to Website</button>
+      </form>
+    </div>
+
+    <div id="dashboard" class="hidden">
+      <h2>G TOP Package Manager</h2>
+      <p>Use this section to add, edit or remove packages displayed on the homepage.</p>
+      <div id="packageMessage"></div>
+      <form id="packageForm">
+        <input type="hidden" id="packageId">
+        <div class="field"><label>Package Name</label><input id="packageName" required placeholder="e.g. Starter Plan"></div>
+        <div class="field"><label>Package Amount</label><input id="packageAmount" type="number" min="0.01" step="0.01" required placeholder="e.g. 10000"></div>
+        <div class="field"><label>Package Description</label><textarea id="packageDescription" placeholder="Enter package description"></textarea></div>
+        <button class="action-btn" type="submit" id="savePackage">Save Package</button>
+        <button class="secondary-btn" type="button" id="cancelEdit">Clear</button>
+      </form>
+      <div class="admin-list">
+        <h3>Existing Packages</h3>
+        <div id="adminPackageList">Loading...</div>
+      </div>
+      <button class="danger-btn" type="button" id="logoutButton" style="margin-top:25px">Log Out</button>
+      <button class="secondary-btn" type="button" id="dashboardHome">View Website</button>
+    </div>
   </div>
 </section>
 
 <footer>
-  © <span id="year"></span> G TOP. All rights reserved.
-  <br>
-  <a class="admin-link" href="#admin" onclick="showAdmin()">Administrator Access</a>
+  <div class="logo">G TOP</div>
+  <p>© <span id="year"></span> G TOP. All rights reserved.</p>
+  <p>Please review all terms and risks before making any financial decision. Investment values can go down as well as up.</p>
 </footer>
-</div>
-
-<div id="adminPage" class="admin-page hidden">
-<div class="admin-wrap">
-  <div class="logo">G <span>TOP</span> ADMIN</div>
-
-  <div id="loginBox" class="admin-panel">
-    <h2>Administrator Login</h2>
-    <p style="color:#a6b9b2;font-size:14px">
-      Sign in to manage your website packages.
-    </p>
-    <form id="loginForm">
-      <label>Admin Email</label>
-      <input id="adminEmail" type="email" required placeholder="Admin email">
-      <label>Password</label>
-      <input id="adminPassword" type="password" required placeholder="Admin password">
-      <p id="loginMessage" class="error"></p>
-      <button type="submit">Login to Dashboard</button>
-    </form>
-  </div>
-
-  <div id="dashboard" class="hidden">
-    <div class="admin-panel">
-      <h2>Dashboard</h2>
-      <p style="color:#a6b9b2">Manage your G TOP investment packages.</p>
-      <br>
-      <button class="secondary" onclick="logout()">Logout</button>
-    </div>
-
-    <div class="admin-panel">
-      <h2 id="formTitle">Add New Package</h2>
-      <form id="packageForm">
-        <input type="hidden" id="packageId">
-        <div class="form-grid">
-          <div>
-            <label>Package Name</label>
-            <input id="packageName" required placeholder="e.g. Starter">
-          </div>
-          <div>
-            <label>Package Amount (USD)</label>
-            <input id="packageAmount" type="number" min="1" step="0.01" required placeholder="50">
-          </div>
-        </div>
-        <label>Package Description</label>
-        <textarea id="packageDescription" rows="3" placeholder="Describe this package"></textarea>
-        <p id="formMessage"></p>
-        <button type="submit">Save Package</button>
-        <button type="button" class="secondary" onclick="resetForm()">Clear</button>
-      </form>
-    </div>
-
-    <div class="admin-panel">
-      <h2>Manage Packages</h2>
-      <div id="adminPackageList">Loading packages...</div>
-    </div>
-  </div>
-
-  <a href="#" class="admin-link" onclick="showWebsite()">← Back to Website</a>
-</div>
-</div>
 
 <script>
 const $ = id => document.getElementById(id);
+let packages = [];
 
-$("year").textContent = new Date().getFullYear();
+function showMessage(id, message, isError=false) {
+  const box = $(id);
+  box.textContent = message;
+  box.className = message ? "message" + (isError ? " error" : "") : "";
+}
 
-async function api(url, options = {}) {
+async function api(url, options={}) {
   const response = await fetch(url, {
+    credentials: "same-origin",
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(options.body ? {"Content-Type":"application/json"} : {}),
       ...(options.headers || {})
     }
   });
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(data.error || "Something went wrong.");
-  }
-
+  let data = {};
+  try { data = await response.json(); } catch {}
+  if (!response.ok) throw new Error(data.error || "Something went wrong.");
   return data;
 }
 
-function showAdmin() {
-  $("website").classList.add("hidden");
-  $("adminPage").classList.remove("hidden");
-  checkAdmin();
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  })[char]);
 }
 
-function showWebsite() {
-  $("adminPage").classList.add("hidden");
-  $("website").classList.remove("hidden");
-  history.replaceState(null, "", location.pathname);
-  loadPackages();
+function money(value) {
+  return Number(value).toLocaleString("en-NG", {
+    maximumFractionDigits:2
+  });
 }
 
 async function loadPackages() {
   try {
-    const packages = await api("/api/packages");
-    const list = $("packageList");
-
-    if (!packages.length) {
-      list.innerHTML = "<p>No packages are available yet.</p>";
-      return;
-    }
-
-    list.innerHTML = packages.map(p => `
-      <div class="package">
-        <h3>${escapeHTML(p.name)}</h3>
-        <div class="amount">$${Number(p.amount).toLocaleString("en-US", {minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-        <p>${escapeHTML(p.description || "Package information")}</p>
-        <button onclick="alert('This is an informational demo. No investment or payment can be made.')">
-          View Information
-        </button>
-      </div>
-    `).join("");
+    packages = await api("/api/packages");
+    $("packageList").innerHTML = packages.length
+      ? packages.map(p => `
+        <article class="package">
+          <h3>${escapeHTML(p.name)}</h3>
+          <div class="amount">₦${money(p.amount)}</div>
+          <p>${escapeHTML(p.description || "View this package for more information.")}</p>
+          <button type="button" class="package-info" data-name="${escapeHTML(p.name)}">View Package</button>
+        </article>`).join("")
+      : '<div class="empty">No packages have been added yet.</div>';
   } catch {
-    $("packageList").innerHTML = "<p>Unable to load packages. Please refresh the page.</p>";
+    $("packageList").innerHTML = '<div class="empty">Unable to load packages. Please refresh the page.</div>';
   }
 }
 
-function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#39;"
-  })[char]);
+async function loadAdminPackages() {
+  try {
+    const items = await api("/api/packages");
+    $("adminPackageList").innerHTML = items.length
+      ? items.map(p => `
+        <div class="admin-item">
+          <div><strong>${escapeHTML(p.name)}</strong>
+            <small>₦${money(p.amount)} — ${escapeHTML(p.description || "")}</small>
+          </div>
+          <div class="admin-actions">
+            <button class="secondary-btn edit-btn" data-id="${p.id}">Edit</button>
+            <button class="danger-btn delete-btn" data-id="${p.id}">Delete</button>
+          </div>
+        </div>`).join("")
+      : "<p>No packages added yet.</p>";
+  } catch(error) {
+    $("adminPackageList").textContent = error.message;
+  }
+}
+
+function resetPackageForm() {
+  $("packageForm").reset();
+  $("packageId").value = "";
+  $("savePackage").textContent = "Save Package";
+  showMessage("packageMessage", "");
 }
 
 async function checkAdmin() {
   try {
     const result = await api("/api/admin/me");
-    if (result.loggedIn) {
-      showDashboard();
-    } else {
-      $("loginBox").classList.remove("hidden");
-      $("dashboard").classList.add("hidden");
-    }
+    $("loginPanel").classList.toggle("hidden", result.loggedIn);
+    $("dashboard").classList.toggle("hidden", !result.loggedIn);
+    if (result.loggedIn) loadAdminPackages();
   } catch {
-    $("loginBox").classList.remove("hidden");
+    $("loginPanel").classList.remove("hidden");
     $("dashboard").classList.add("hidden");
   }
 }
 
-$("loginForm").addEventListener("submit", async event => {
-  event.preventDefault();
-  $("loginMessage").textContent = "Signing in...";
-
-  try {
-    await api("/api/admin/login", {
-      method: "POST",
-      body: JSON.stringify({
-        email: $("adminEmail").value,
-        password: $("adminPassword").value
-      })
-    });
-
-    $("loginMessage").textContent = "";
-    showDashboard();
-  } catch (error) {
-    $("loginMessage").textContent = error.message;
-  }
-});
-
-function showDashboard() {
-  $("loginBox").classList.add("hidden");
-  $("dashboard").classList.remove("hidden");
-  loadAdminPackages();
+function openAdmin() {
+  $("homePage").style.display = "none";
+  $("adminArea").style.display = "block";
+  checkAdmin();
+  window.scrollTo(0,0);
 }
 
-async function loadAdminPackages() {
-  try {
-    const packages = await api("/api/packages");
-    const list = $("adminPackageList");
-
-    if (!packages.length) {
-      list.innerHTML = "<p>No packages created yet.</p>";
-      return;
-    }
-
-    list.innerHTML = packages.map(p => `
-      <div class="package-row">
-        <div>
-          <strong>${escapeHTML(p.name)}</strong>
-          <br>
-          <small>$${Number(p.amount).toLocaleString("en-US")} — ${escapeHTML(p.description || "")}</small>
-        </div>
-        <div class="actions">
-          <button class="secondary" onclick="editPackage(${p.id},'${escapeHTML(p.name)}',${Number(p.amount)},'${escapeHTML(p.description || "")}')">Edit</button>
-          <button class="delete" onclick="deletePackage(${p.id})">Delete</button>
-        </div>
-      </div>
-    `).join("");
-  } catch (error) {
-    $("adminPackageList").textContent = error.message;
-  }
-}
-
-$("packageForm").addEventListener("submit", async event => {
-  event.preventDefault();
-
-  const id = $("packageId").value;
-  const payload = {
-    name: $("packageName").value,
-    amount: $("packageAmount").value,
-    description: $("packageDescription").value
-  };
-
-  try {
-    if (id) {
-      await api("/api/admin/packages/" + id, {
-        method: "PUT",
-        body: JSON.stringify(payload)
-      });
-    } else {
-      await api("/api/admin/packages", {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-    }
-
-    $("formMessage").className = "success";
-    $("formMessage").textContent = "Package saved successfully.";
-    resetForm();
-    loadAdminPackages();
-    loadPackages();
-  } catch (error) {
-    $("formMessage").className = "error";
-    $("formMessage").textContent = error.message;
-  }
-});
-
-function editPackage(id, name, amount, description) {
-  $("packageId").value = id;
-  $("packageName").value = name;
-  $("packageAmount").value = amount;
-  $("packageDescription").value = description;
-  $("formTitle").textContent = "Edit Package";
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-
-function resetForm() {
-  $("packageForm").reset();
-  $("packageId").value = "";
-  $("formTitle").textContent = "Add New Package";
-}
-
-async function deletePackage(id) {
-  if (!confirm("Are you sure you want to delete this package?")) return;
-
-  try {
-    await api("/api/admin/packages/" + id, {method:"DELETE"});
-    loadAdminPackages();
-    loadPackages();
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
-async function logout() {
-  try {
-    await api("/api/admin/logout", {method:"POST"});
-    $("dashboard").classList.add("hidden");
-    $("loginBox").classList.remove("hidden");
-    $("loginPassword").value = "";
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
-if (location.hash === "#admin") {
-  showAdmin();
-} else {
+function openHome() {
+  $("adminArea").style.display = "none";
+  $("homePage").style.display = "block";
+  window.scrollTo(0,0);
   loadPackages();
 }
+
+$("adminLink").addEventListener("click", e => {
+  e.preventDefault();
+  openAdmin();
+});
+
+$("backHome").addEventListener("click", openHome);
+$("dashboardHome").addEventListener("click", openHome);
+
+$("loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  showMessage("loginMessage", "");
+  try {
+    await api("/api/admin/login", {
+      method:"POST",
+      body:JSON.stringify({
+        email:$("adminEmail").value,
+        password:$("adminPassword").value
+      })
+    });
+    $("adminPassword").value = "";
+    await checkAdmin();
+  } catch(error) {
+    showMessage("loginMessage", error.message, true);
+  }
+});
+
+$("packageForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  showMessage("packageMessage", "");
+  const id = $("packageId").value;
+  const body = {
+    name:$("packageName").value.trim(),
+    amount:$("packageAmount").value,
+    description:$("packageDescription").value.trim()
+  };
+  try {
+    await api(id ? "/api/admin/packages/" + encodeURIComponent(id) : "/api/admin/packages", {
+      method:id ? "PUT" : "POST",
+      body:JSON.stringify(body)
+    });
+    resetPackageForm();
+    showMessage("packageMessage", "Package saved successfully.");
+    await loadAdminPackages();
+    await loadPackages();
+  } catch(error) {
+    if (error.message.toLowerCase().includes("log in")) {
+      showMessage("packageMessage", "Your admin session has expired. Please log in again.", true);
+      await checkAdmin();
+    } else {
+      showMessage("packageMessage", error.message, true);
+    }
+  }
+});
+
+$("adminPackageList").addEventListener("click", async e => {
+  const edit = e.target.closest(".edit-btn");
+  const del = e.target.closest(".delete-btn");
+
+  if (edit) {
+    const item = packages.find(p => String(p.id) === edit.dataset.id);
+    if (!item) {
+      try {
+        const all = await api("/api/packages");
+        const p = all.find(x => String(x.id) === edit.dataset.id);
+        if (p) fillEdit(p);
+      } catch(error) { showMessage("packageMessage", error.message, true); }
+      return;
+    }
+    fillEdit(item);
+  }
+
+  if (del) {
+    if (!confirm("Are you sure you want to delete this package?")) return;
+    try {
+      await api("/api/admin/packages/" + encodeURIComponent(del.dataset.id), {method:"DELETE"});
+      showMessage("packageMessage", "Package deleted successfully.");
+      await loadAdminPackages();
+      await loadPackages();
+    } catch(error) {
+      showMessage("packageMessage", error.message, true);
+    }
+  }
+});
+
+function fillEdit(p) {
+  $("packageId").value = p.id;
+  $("packageName").value = p.name;
+  $("packageAmount").value = p.amount;
+  $("packageDescription").value = p.description || "";
+  $("savePackage").textContent = "Update Package";
+  $("packageForm").scrollIntoView({behavior:"smooth"});
+}
+
+$("cancelEdit").addEventListener("click", resetPackageForm);
+
+$("logoutButton").addEventListener("click", async () => {
+  try {
+    await api("/api/admin/logout", {method:"POST"});
+    resetPackageForm();
+    openAdmin();
+  } catch(error) {
+    showMessage("packageMessage", error.message, true);
+  }
+});
+
+$("packageList").addEventListener("click", e => {
+  if (e.target.closest(".package-info")) {
+    const name = e.target.closest(".package-info").dataset.name;
+    alert("You selected " + name + ". Please review the package details carefully before making any financial decision.");
+  }
+});
+
+$("year").textContent = new Date().getFullYear();
+loadPackages();
 </script>
 </body>
 </html>
