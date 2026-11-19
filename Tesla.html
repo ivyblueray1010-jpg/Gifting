@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#071b35">
+  <meta name="description" content="Explore electric vehicles, compare models and build your ideal car.">
+  <title>VOLT — Electric, made personal</title>
+  <style>
+    /* =========================================================
+       QUICK CUSTOMIZATION
+       1. Change --navy and --accent to change the site colours.
+       2. Change the image URLs in the IMAGE SETTINGS section.
+       3. Edit vehicle names, prices and details in the VEHICLES
+          array near the bottom of this file.
+       ========================================================= */
+    :root {
+      --navy: #071b35;
+      --navy-2: #102b4c;
+      --accent: #8ee7dc;
+      --ink: #101820;
+      --muted: #687581;
+      --paper: #f5f7f8;
+      --white: #fff;
+      --line: #e4e9ed;
+      --radius: 22px;
+      --shadow: 0 18px 50px rgba(7,27,53,.12);
+      --hero-image: url("https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&w=2200&q=88");
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; color: var(--ink); background: var(--white);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    img { display: block; width: 100%; object-fit: cover; }
+    .container { width: min(1160px, calc(100% - 44px)); margin-inline: auto; }
+    .eyebrow { font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; font-weight: 800; color: var(--muted); }
+    .section { padding: 92px 0; }
+    .section-head { display:flex; justify-content:space-between; align-items:end; gap:24px; margin-bottom:32px; }
+    .section-head h2 { margin:8px 0 0; font-size:clamp(2rem,4vw,3.2rem); line-height:1.05; letter-spacing:-.055em; }
+    .section-head p { max-width:390px; margin:0; color:var(--muted); }
+    .btn {
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      border:1px solid transparent; border-radius:999px; padding:13px 21px;
+      font-weight:750; transition:.2s ease; min-height:48px;
+    }
+    .btn:hover { transform:translateY(-2px); }
+    .btn-dark { background:var(--navy); color:white; }
+    .btn-light { background:white; color:var(--navy); }
+    .btn-outline { border-color:rgba(255,255,255,.55); color:white; background:transparent; }
+    .btn-accent { background:var(--accent); color:var(--navy); }
+    /* Header */
+    .topbar { position:absolute; inset:0 0 auto; z-index:10; color:white; }
+    .nav { min-height:82px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.2); }
+    .brand { display:flex; align-items:center; gap:10px; font-size:1.25rem; font-weight:900; letter-spacing:.12em; }
+    .brand-mark { width:30px; height:30px; border:2px solid var(--accent); border-radius:9px 9px 15px 9px; transform:rotate(45deg); display:grid; place-items:center; }
+    .brand-mark:after { content:""; width:9px; height:9px; background:var(--accent); border-radius:50%; }
+    .nav-links { display:flex; align-items:center; gap:30px; font-size:.9rem; font-weight:650; }
+    .nav-links a { opacity:.88; }
+    .nav-links a:hover { opacity:1; color:var(--accent); }
+    .menu-toggle { display:none; background:transparent; border:0; color:white; font-size:1.7rem; }
+    /* Hero */
+    .hero {
+      min-height:720px; display:flex; align-items:center; color:white; position:relative; isolation:isolate;
+      background:linear-gradient(90deg,rgba(4,17,34,.88) 0%,rgba(4,17,34,.55) 48%,rgba(4,17,34,.08) 100%), var(--hero-image) center/cover no-repeat;
+    }
+    .hero:after { content:""; position:absolute; z-index:-1; inset:auto 0 0; height:170px; background:linear-gradient(transparent,rgba(4,17,34,.42)); }
+    .hero-content { padding-top:100px; max-width:660px; }
+    .hero .eyebrow { color:var(--accent); }
+    .hero h1 { font-size:clamp(3.2rem,8vw,6.7rem); line-height:.94; letter-spacing:-.075em; margin:20px 0 22px; }
+    .hero h1 span { color:var(--accent); }
+    .hero p { color:rgba(255,255,255,.82); font-size:1.08rem; max-width:490px; margin:0 0 30px; }
+    .hero-actions { display:flex; flex-wrap:wrap; gap:12px; }
+    .hero-note { display:flex; gap:28px; margin-top:54px; color:rgba(255,255,255,.8); font-size:.82rem; }
+    .hero-note strong { display:block; color:white; font-size:1.05rem; }
+    /* Intro strip */
+    .trust-strip { background:var(--navy); color:white; }
+    .trust-inner { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; padding:22px 0; }
+    .trust-item { display:flex; gap:13px; align-items:center; color:rgba(255,255,255,.75); font-size:.85rem; }
+    .trust-icon { width:38px; height:38px; display:grid; place-items:center; border:1px solid rgba(142,231,220,.55); color:var(--accent); border-radius:50%; font-size:1.1rem; }
+    .trust-item b { display:block; color:white; font-size:.95rem; }
+    /* Models */
+    .models { background:var(--paper); }
+    .filters { display:flex; gap:8px; flex-wrap:wrap; }
+    .filter { border:1px solid var(--line); background:white; padding:9px 16px; border-radius:999px; color:var(--muted); font-weight:700; }
+    .filter.active { background:var(--navy); border-color:var(--navy); color:white; }
+    .vehicle-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+    .vehicle-card { background:white; border-radius:var(--radius); overflow:hidden; box-shadow:0 4px 22px rgba(10,30,50,.05); transition:.25s; }
+    .vehicle-card:hover { transform:translateY(-5px); box-shadow:var(--shadow); }
+    .vehicle-image { height:230px; position:relative; overflow:hidden; background:#dfe7ed; }
+    .vehicle-image img { height:100%; transition:transform .5s; }
+    .vehicle-card:hover .vehicle-image img { transform:scale(1.045); }
+    .tag { position:absolute; left:15px; top:15px; background:rgba(255,255,255,.92); color:var(--navy); padding:6px 10px; border-radius:999px; font-size:.7rem; font-weight:800; }
+    .vehicle-info { padding:20px; }
+    .vehicle-title-row { display:flex; justify-content:space-between; align-items:start; gap:10px; }
+    .vehicle-info h3 { margin:0; font-size:1.25rem; letter-spacing:-.03em; }
+    .price { font-weight:850; color:var(--navy); white-space:nowrap; }
+    .vehicle-info p { color:var(--muted); font-size:.88rem; margin:7px 0 17px; }
+    .specs { display:flex; gap:18px; border-top:1px solid var(--line); padding-top:14px; color:var(--muted); font-size:.78rem; }
+    .specs b { display:block; color:var(--ink); font-size:.92rem; }
+    .card-actions { display:flex; gap:9px; margin-top:18px; }
+    .card-actions .btn { flex:1; padding:10px 12px; min-height:42px; font-size:.83rem; }
+    /* Feature split */
+    .feature { display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center; }
+    .feature-photo { min-height:480px; border-radius:28px; overflow:hidden; position:relative; }
+    .feature-photo img { height:100%; min-height:480px; position:absolute; inset:0; }
+    .feature-copy h2 { font-size:clamp(2.2rem,4.4vw,4rem); line-height:1.02; letter-spacing:-.06em; margin:12px 0 20px; }
+    .feature-copy p { color:var(--muted); max-width:490px; }
+    .feature-points { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:28px 0; }
+    .point { border-top:1px solid var(--line); padding-top:13px; }
+    .point b { display:block; font-size:1.02rem; }
+    .point span { color:var(--muted); font-size:.82rem; }
+    /* Configurator */
+    .config-section { background:var(--navy); color:white; }
+    .config-layout { display:grid; grid-template-columns:1.1fr .9fr; gap:45px; align-items:center; }
+    .config-image { border-radius:25px; overflow:hidden; background:#173858; }
+    .config-image img { height:390px; }
+    .config-copy h2 { font-size:clamp(2.2rem,4.5vw,4rem); letter-spacing:-.06em; line-height:1.02; margin:12px 0 18px; }
+    .config-copy p { color:rgba(255,255,255,.7); }
+    .config-controls { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:25px 0; }
+    .field label { display:block; font-size:.78rem; color:rgba(255,255,255,.7); margin-bottom:7px; }
+    .field select, .field input, .field textarea {
+      width:100%; border:1px solid rgba(255,255,255,.2); background:#102b4c; color:white;
+      border-radius:12px; padding:12px 13px; outline:none;
+    }
+    .field select:focus, .field input:focus, .field textarea:focus { border-color:var(--accent); }
+    .swatches { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .swatch { width:27px; height:27px; border-radius:50%; border:2px solid white; outline:2px solid transparent; }
+    .swatch.selected { outline-color:var(--accent); }
+    /* Steps / contact */
+    .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:35px; }
+    .step { padding:25px; background:var(--paper); border-radius:18px; }
+    .step-num { width:36px; height:36px; border-radius:50%; display:grid; place-items:center; background:var(--navy); color:var(--accent); font-weight:900; }
+    .step h3 { margin:18px 0 7px; }
+    .step p { color:var(--muted); font-size:.9rem; margin:0; }
+    .contact-section { background:#eef3f5; }
+    .contact-layout { display:grid; grid-template-columns:.8fr 1.2fr; gap:55px; }
+    .contact-copy h2 { font-size:clamp(2.2rem,4vw,3.7rem); line-height:1; letter-spacing:-.06em; margin:12px 0 18px; }
+    .contact-copy p { color:var(--muted); }
+    .contact-card { background:white; border-radius:24px; padding:28px; box-shadow:0 12px 40px rgba(10,30,50,.06); }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+    .contact-card .field label { color:var(--muted); font-weight:700; }
+    .contact-card .field input, .contact-card .field select, .contact-card .field textarea { background:white; color:var(--ink); border-color:var(--line); }
+    .contact-card .field.full { grid-column:1/-1; }
+    .contact-card textarea { min-height:100px; resize:vertical; }
+    .form-message { display:none; padding:12px 14px; background:#e8f8f4; color:#125c50; border-radius:12px; margin-top:14px; font-size:.9rem; }
+    /* Footer and modal */
+    footer { background:#041326; color:white; padding:35px 0; }
+    .footer-inner { display:flex; justify-content:space-between; align-items:center; gap:20px; }
+    footer p { color:rgba(255,255,255,.55); font-size:.82rem; margin:7px 0 0; }
+    .footer-links { display:flex; gap:20px; color:rgba(255,255,255,.72); font-size:.85rem; }
+    .modal { position:fixed; inset:0; z-index:50; background:rgba(2,12,25,.72); display:none; place-items:center; padding:20px; }
+    .modal.open { display:grid; }
+    .modal-box { width:min(620px,100%); max-height:90vh; overflow:auto; background:white; border-radius:22px; padding:25px; position:relative; }
+    .modal-close { position:absolute; right:16px; top:12px; border:0; background:#eef2f5; border-radius:50%; width:36px; height:36px; font-size:1.3rem; }
+    .modal-box img { height:230px; border-radius:14px; margin:14px 0; }
+    .modal-box p { color:var(--muted); }
+    .toast { position:fixed; z-index:60; bottom:20px; left:50%; transform:translate(-50%,20px); opacity:0; pointer-events:none; background:var(--navy); color:white; padding:12px 18px; border-radius:999px; transition:.25s; box-shadow:var(--shadow); }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    @media (max-width:900px) {
+      .nav-links { gap:16px; }
+      .vehicle-grid { grid-template-columns:repeat(2,1fr); }
+      .feature, .config-layout, .contact-layout { grid-template-columns:1fr; gap:32px; }
+      .feature-photo { min-height:360px; }
+      .feature-photo img { min-height:360px; }
+      .config-image img { height:330px; }
+    }
+    @media (max-width:650px) {
+      .container { width:min(100% - 30px, 520px); }
+      .section { padding:65px 0; }
+      .nav { min-height:70px; }
+      .menu-toggle { display:block; }
+      .nav-links { display:none; position:absolute; top:70px; left:15px; right:15px; padding:20px; border-radius:16px; background:var(--navy); flex-direction:column; align-items:stretch; box-shadow:var(--shadow); }
+      .nav-links.open { display:flex; }
+      .nav-links .btn { text-align:center; }
+      .hero { min-height:680px; background-position:58% center; }
+      .hero-content { padding-top:105px; }
+      .hero h1 { font-size:clamp(3.1rem,15vw,5rem); }
+      .hero-note { gap:17px; flex-wrap:wrap; margin-top:38px; }
+      .trust-inner { grid-template-columns:1fr; gap:15px; padding:20px 0; }
+      .section-head { display:block; }
+      .section-head p { margin-top:13px; }
+      .filters { margin-top:20px; }
+      .vehicle-grid { grid-template-columns:1fr; }
+      .vehicle-image { height:220px; }
+      .steps { grid-template-columns:1fr; }
+      .config-controls, .form-grid, .feature-points { grid-template-columns:1fr; }
+      .contact-card { padding:19px; }
+      .footer-inner { align-items:flex-start; flex-direction:column; }
+      .footer-links { flex-wrap:wrap; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <a class="brand" href="#home" aria-label="VOLT home"><span class="brand-mark"></span> VOLT</a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button>
+      <nav class="nav-links" id="navLinks">
+        <a href="#vehicles">Vehicles</a>
+        <a href="#experience">Experience</a>
+        <a href="#configure">Configure</a>
+        <a href="#contact">Contact</a>
+        <a class="btn btn-light" href="#vehicles">Explore models ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="container">
+        <div class="hero-content">
+          <div class="eyebrow">The future is already moving</div>
+          <h1>Discover the<br>future of <span>driving.</span></h1>
+          <p>Thoughtful electric vehicles. Beautiful design. A more exciting way to move through the world.</p>
+          <div class="hero-actions">
+            <a class="btn btn-accent" href="#vehicles">Explore vehicles <span>↗</span></a>
+            <a class="btn btn-outline" href="#experience">Discover the experience</a>
+          </div>
+          <div class="hero-note">
+            <div><strong>100% electric</strong>Quiet, confident driving</div>
+            <div><strong>Made personal</strong>Build it your way</div>
+            <div><strong>Simple process</strong>From browsing to enquiry</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust-strip">
+      <div class="container trust-inner">
+        <div class="trust-item"><span class="trust-icon">⚡</span><span><b>Electric by design</b>Built around a better drive</span></div>
+        <div class="trust-item"><span class="trust-icon">◇</span><span><b>Made for your life</b>Options that feel like you</span></div>
+        <div class="trust-item"><span class="trust-icon">↗</span><span><b>Here when you need us</b>Friendly help at every step</span></div>
+      </div>
+    </section>
+
+    <section class="section models" id="vehicles">
+      <div class="container">
+        <div class="section-head">
+          <div><div class="eyebrow">Find your electric</div><h2>Meet the lineup.</h2></div>
+          <div class="filters" id="filters">
+            <button class="filter active" data-filter="All">All vehicles</button>
+            <button class="filter" data-filter="Sedan">Sedan</button>
+            <button class="filter" data-filter="SUV">SUV</button>
+            <button class="filter" data-filter="Utility">Utility</button>
+          </div>
+        </div>
+        <div class="vehicle-grid" id="vehicleGrid"></div>
+      </div>
+    </section>
+
+    <section class="section" id="experience">
+      <div class="container feature">
+        <div class="feature-photo">
+          <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=85" alt="Modern car driving on a scenic road" loading="lazy">
+        </div>
+        <div class="feature-copy">
+          <div class="eyebrow">Different by design. Electric by nature.</div>
+          <h2>A better kind of drive starts here.</h2>
+          <p>Explore a clean, considered vehicle experience. Compare models, discover the details that matter and choose a configuration that suits your everyday life.</p>
+          <div class="feature-points">
+            <div class="point"><b>Instant response</b><span>Smooth, quiet acceleration</span></div>
+            <div class="point"><b>Thoughtful design</b><span>Comfort meets simplicity</span></div>
+            <div class="point"><b>Everyday practical</b><span>Space for your next journey</span></div>
+            <div class="point"><b>Your choice</b><span>Options to make it yours</span></div>
+          </div>
+          <a class="btn btn-dark" href="#configure">Build your configuration ↗</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section config-section" id="configure">
+      <div class="container config-layout">
+        <div class="config-image">
+          <img id="configImage" src="https://images.unsplash.com/photo-1560958089-b8a1929peas?auto=format&fit=crop&w=1300&q=85" alt="Electric vehicle configuration preview">
+        </div>
+        <div class="config-copy">
+          <div class="eyebrow" style="color:var(--accent)">Your vehicle, your way</div>
+          <h2>Make it personal.</h2>
+          <p>Choose a model, paint finish and interior preference. Your selection will be included in your enquiry.</p>
+          <div class="config-controls">
+            <div class="field"><label for="configModel">Vehicle model</label><select id="configModel"><option>Model 3</option><option>Model Y</option><option>Cybertruck</option></select></div>
+            <div class="field"><label for="configWheels">Wheels</label><select id="configWheels"><option>Standard wheels</option><option>Sport wheels</option></select></div>
+            <div class="field"><label>Exterior colour</label><div class="swatches" id="swatches">
+              <button class="swatch selected" data-colour="Pearl White" style="background:#f4f4f0" aria-label="Pearl White"></button>
+              <button class="swatch" data-colour="Midnight Black" style="background:#151719" aria-label="Midnight Black"></button>
+              <button class="swatch" data-colour="Silver" style="background:#9da5ac" aria-label="Silver"></button>
+              <button class="swatch" data-colour="Deep Blue" style="background:#163c70" aria-label="Deep Blue"></button>
+              <button class="swatch" data-colour="Red" style="background:#a3292f" aria-label="Red"></button>
+            </div></div>
+            <div class="field"><label for="configInterior">Interior</label><select id="configInterior"><option>Black</option><option>White</option><option>Premium light</option></select></div>
+          </div>
+          <a class="btn btn-accent" id="sendConfig" href="#contact">Request this configuration ↗</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="eyebrow">A simple journey</div>
+        <div class="section-head"><h2>From inspiration<br>to your driveway.</h2><p>We keep the process clear, helpful and centred around what you need.</p></div>
+        <div class="steps">
+          <article class="step"><span class="step-num">01</span><h3>Find your vehicle</h3><p>Browse the lineup and compare the models that interest you.</p></article>
+          <article class="step"><span class="step-num">02</span><h3>Make it yours</h3><p>Choose your preferred colour, wheels and interior finish.</p></article>
+          <article class="step"><span class="step-num">03</span><h3>Talk to our team</h3><p>Send an enquiry and we'll help with the next steps.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section contact-section" id="contact">
+      <div class="container contact-layout">
+        <div class="contact-copy">
+          <div class="eyebrow">Let's make the first connection</div>
+          <h2>Let's move you forward.</h2>
+          <p>Have a question or want to request a vehicle configuration? Send us a message and our team will get back to you.</p>
+          <p><b>Email</b><br>hello@volt.example</p>
+          <p><b>Showroom</b><br>By appointment</p>
+        </div>
+        <form class="contact-card" id="contactForm">
+          <div class="form-grid">
+            <div class="field"><label for="firstName">First name</label><input id="firstName" name="firstName" placeholder="Your first name" required></div>
+            <div class="field"><label for="lastName">Last name</label><input id="lastName" name="lastName" placeholder="Your last name" required></div>
+            <div class="field"><label for="email">Email address</label><input id="email" name="email" type="email" placeholder="you@example.com" required></div>
+            <div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" type="tel" placeholder="+234 ..."></div>
+            <div class="field"><label for="country">Country / region</label><input id="country" name="country" placeholder="Your country"></div>
+            <div class="field"><label for="interest">Vehicle of interest</label><select id="interest" name="interest"><option>Model 3</option><option>Model Y</option><option>Cybertruck</option><option>Not sure yet</option></select></div>
+            <div class="field full"><label for="message">Your message</label><textarea id="message" name="message" placeholder="Tell us what you would like to know..."></textarea></div>
+            <div class="field full"><button class="btn btn-dark" type="submit">Send enquiry ↗</button><div class="form-message" id="formMessage">Thanks! Your enquiry has been prepared. Connect this form to your email or form service to receive submissions.</div></div>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <div><a class="brand" href="#home"><span class="brand-mark"></span> VOLT</a><p>Electric, made personal. Demo website template.</p></div>
+      <div class="footer-links"><a href="#vehicles">Vehicles</a><a href="#configure">Configure</a><a href="#contact">Contact</a><a href="#home">Back to top ↑</a></div>
+    </div>
+  </footer>
+
+  <div class="modal" id="vehicleModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-box">
+      <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+      <div class="eyebrow">Vehicle overview</div>
+      <h2 id="modalTitle"></h2>
+      <img id="modalImage" src="" alt="">
+      <p id="modalDescription"></p>
+      <div class="specs" id="modalSpecs"></div>
+      <br><a class="btn btn-dark" href="#contact" id="modalEnquire">Enquire about this model ↗</a>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* =========================================================
+       VEHICLE CONTENT: edit the names, prices, specs and images
+       here. Image URLs below are replaceable public image URLs.
+       ========================================================= */
+    const VEHICLES = [
+      {
+        name:"Model 3", type:"Sedan", price:"From $36,990",
+        range:"341 mi", acceleration:"4.2 sec", drive:"Dual motor",
+        badge:"Popular choice",
+        description:"A refined electric sedan with a clean profile, a spacious cabin and responsive performance for everyday journeys.",
+        image:"https://images.unsplash.com/photo-1560958089-b8a1929peas?auto=format&fit=crop&w=1200&q=85"
+      },
+      {
+        name:"Model Y", type:"SUV", price:"From $39,990",
+        range:"320 mi", acceleration:"4.8 sec", drive:"All-wheel drive",
+        badge:"Versatile",
+        description:"A versatile electric SUV with generous room, flexible storage and a confident, comfortable ride.",
+        image:"https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=1200&q=85"
+      },
+      {
+        name:"Cybertruck", type:"Utility", price:"Price on request",
+        range:"318 mi", acceleration:"2.6 sec", drive:"All-wheel drive",
+        badge:"Distinctive design",
+        description:"A bold electric utility vehicle with an angular exterior, adaptable storage and a distinctive presence.",
+        image:"https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1200&q=85"
+      }
+    ];
+
+    const grid = document.getElementById("vehicleGrid");
+    const modal = document.getElementById("vehicleModal");
+    const toast = document.getElementById("toast");
+    let selectedColour = "Pearl White";
+
+    function renderVehicles(filter="All") {
+      const list = filter === "All" ? VEHICLES : VEHICLES.filter(v => v.type === filter);
+      grid.innerHTML = list.map(v => `
+        <article class="vehicle-card">
+          <div class="vehicle-image">
+            <img src="${v.image}" alt="${v.name}" loading="lazy">
+            <span class="tag">${v.badge}</span>
+          </div>
+          <div class="vehicle-info">
+            <div class="vehicle-title-row"><h3>${v.name}</h3><span class="price">${v.price}</span></div>
+            <p>${v.description}</p>
+            <div class="specs">
+              <span><b>${v.range}</b>Range*</span>
+              <span><b>${v.acceleration}</b>0–60 mph*</span>
+              <span><b>${v.drive}</b>Drive</span>
+            </div>
+            <div class="card-actions">
+              <button class="btn btn-dark" onclick="openVehicle('${v.name}')">View details</button>
+              <button class="btn" style="background:#edf2f5;color:var(--navy)" onclick="chooseVehicle('${v.name}')">Configure</button>
+            </div>
+          </div>
+        </article>`).join("");
+    }
+
+    function openVehicle(name) {
+      const v = VEHICLES.find(item => item.name === name);
+      if (!v) return;
+      document.getElementById("modalTitle").textContent = v.name;
+      document.getElementById("modalImage").src = v.image;
+      document.getElementById("modalImage").alt = v.name;
+      document.getElementById("modalDescription").textContent = v.description + " " + v.price + ".";
+      document.getElementById("modalSpecs").innerHTML =
+        `<span><b>${v.range}</b>Range*</span><span><b>${v.acceleration}</b>0–60 mph*</span><span><b>${v.drive}</b>Drive</span>`;
+      modal.classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+    function closeModal() { modal.classList.remove("open"); document.body.style.overflow = ""; }
+    function chooseVehicle(name) {
+      document.getElementById("configModel").value = name;
+      document.getElementById("interest").value = name;
+      document.getElementById("configure").scrollIntoView({behavior:"smooth"});
+      showToast(name + " selected — make it yours.");
+    }
+    function showToast(message) {
+      toast.textContent = message; toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2600);
+    }
+
+    document.getElementById("filters").addEventListener("click", e => {
+      const btn = e.target.closest("[data-filter]");
+      if (!btn) return;
+      document.querySelectorAll(".filter").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderVehicles(btn.dataset.filter);
+    });
+    document.getElementById("modalClose").addEventListener("click", closeModal);
+    modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+    document.getElementById("modalEnquire").addEventListener("click", closeModal);
+
+    document.getElementById("swatches").addEventListener("click", e => {
+      const swatch = e.target.closest(".swatch");
+      if (!swatch) return;
+      document.querySelectorAll(".swatch").forEach(s => s.classList.remove("selected"));
+      swatch.classList.add("selected");
+      selectedColour = swatch.dataset.colour;
+      showToast("Exterior colour: " + selectedColour);
+    });
+    document.getElementById("sendConfig").addEventListener("click", () => {
+      const model = document.getElementById("configModel").value;
+      const wheels = document.getElementById("configWheels").value;
+      const interior = document.getElementById("configInterior").value;
+      document.getElementById("interest").value = model;
+      document.getElementById("message").value =
+        `I'd like to enquire about ${model}. Exterior: ${selectedColour}. Wheels: ${wheels}. Interior: ${interior}.`;
+    });
+
+    document.getElementById("contactForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      const subject = encodeURIComponent("Vehicle enquiry — " + data.interest);
+      const body = encodeURIComponent(
+        `Name: ${data.firstName} ${data.lastName}\nEmail: ${data.email}\nPhone: ${data.phone}\nCountry: ${data.country}\nVehicle: ${data.interest}\nMessage: ${data.message}`
+      );
+      document.getElementById("formMessage").style.display = "block";
+      /* Replace hello@volt.example with your real business email.
+         This opens the visitor's email app; it does not store submissions. */
+      window.location.href = `mailto:hello@volt.example?subject=${subject}&body=${body}`;
+    });
+
+    document.getElementById("menuToggle").addEventListener("click", () => {
+      document.getElementById("navLinks").classList.toggle("open");
+    });
+    document.querySelectorAll("#navLinks a").forEach(a => a.addEventListener("click", () => {
+      document.getElementById("navLinks").classList.remove("open");
+    }));
+
+    renderVehicles();
+  </script>
+</body>
+</html>
