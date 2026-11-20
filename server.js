@@ -22,16 +22,28 @@ if (process.env.NODE_ENV === "production" &&
   process.exit(1);
 }
 
+
+const bootstrapPool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === "production"
+    ? { rejectUnauthorized: false }
+    : false
+});
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === "production"
+    ? { rejectUnauthorized: false }
+    : false,
+  options: "-c search_path=gtop_upgrade"
 });
+
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: "30kb" }));
 app.use(express.urlencoded({ extended: false, limit: "30kb" }));
 app.use(session({
-  store: new PgSession({ pool, createTableIfMissing: true }),
+  store: new PgSession({ pool, createTableIfMissing: false }),
   secret: process.env.SESSION_SECRET || "local-development-only-change-this-secret",
   resave: false,
   saveUninitialized: false,
@@ -50,6 +62,18 @@ const money = value => Number.isFinite(Number(value)) && Number(value) > 0;
 const clean = value => String(value || "").trim();
 
 async function setup() {
+   await bootstrapPool.query("CREATE SCHEMA IF NOT EXISTS gtop_upgrade");
+  await bootstrapPool.end();
+  await pool.query(`
+  CREATE TABLE IF NOT EXISTS "session" (
+    "sid" VARCHAR NOT NULL,
+    "sess" JSON NOT NULL,
+    "expire" TIMESTAMP(6) NOT NULL,
+    CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
+  );
+  CREATE INDEX IF NOT EXISTS "IDX_session_expire"
+  ON "session" ("expire");
+`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS admins (
       id SERIAL PRIMARY KEY, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL
